@@ -6,14 +6,17 @@ import { ExerciseBlock } from '@/components/ExerciseBlock';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { RestTimer } from '@/components/RestTimer';
 import { Button, EmptyState, ErrorText, Row, Txt } from '@/components/ui';
-import { colors, maxContentWidth, spacing } from '@/constants/theme';
+import { maxContentWidth, spacing } from '@/constants/theme';
 import { useFinishWorkout } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
 import { formatClock } from '@/lib/format';
 import { toFinishPayload, useActiveWorkout } from '@/store/activeWorkout';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 export default function ActiveWorkoutScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { unit } = useAuth();
   const s = useActiveWorkout();
   const workout = s.workout;
@@ -131,7 +134,7 @@ export default function ActiveWorkoutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.bg },
   topBar: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingBottom: spacing.sm, paddingHorizontal: spacing.lg },
   topInner: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -139,4 +142,4 @@ const styles = StyleSheet.create({
   content: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', padding: spacing.lg, gap: spacing.md },
   title: { color: colors.text, fontSize: 24, fontWeight: '800' },
   notes: { color: colors.muted, fontSize: 15, minHeight: 24 },
-});
+}));

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { colors, radius, spacing } from '@/constants/theme';
+import { Pressable, TextInput, View } from 'react-native';
+import { radius, spacing } from '@/constants/theme';
 import { parseWeightInput, weightInputValue, type WeightUnit } from '@/lib/units';
 import { Card, IconButton, Row, Txt } from './ui';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 export type EditableSet = { id: string; weightKg: number | null; reps: number | null; completed?: boolean };
 export type EditableExercise = { id: string; name: string; notes: string; restSeconds: number; sets: EditableSet[] };
@@ -27,6 +28,8 @@ const REST_STEPS = [0, 30, 45, 60, 90, 120, 150, 180, 240, 300];
 export function ExerciseBlock({
   exercise, index, unit, onToggleSet, onChangeSet, onAddSet, onRemoveSet, onRemove, onChangeNotes, onChangeRest,
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const cycleRest = (dir: 1 | -1) => {
     const i = REST_STEPS.findIndex((s) => s >= exercise.restSeconds);
     const cur = i === -1 ? REST_STEPS.length - 1 : i;
@@ -99,6 +102,8 @@ function SetRow({
   onChange: (patch: Partial<Pick<EditableSet, 'weightKg' | 'reps'>>) => void;
   onRemove: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   // Keep raw text while typing so "12." or "" does not get reformatted mid-edit.
   const [weightText, setWeightText] = useState(() => weightInputValue(set.weightKg, unit));
   const [repsText, setRepsText] = useState(() => (set.reps == null ? '' : String(set.reps)));
@@ -134,7 +139,7 @@ function SetRow({
       <Row style={[styles.colAction, { justifyContent: 'flex-end', gap: 2 }]}>
         {onToggle ? (
           <Pressable onPress={onToggle} hitSlop={6} style={[styles.check, done && styles.checkDone]}>
-            <Ionicons name="checkmark" size={18} color={done ? '#06240F' : colors.muted} />
+            <Ionicons name="checkmark" size={18} color={done ? colors.successText : colors.muted} />
           </Pressable>
         ) : null}
         <IconButton name="close" size={18} color={colors.faint} onPress={onRemove} />
@@ -143,7 +148,7 @@ function SetRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   badge: {
     width: 24, height: 24, borderRadius: 12, backgroundColor: colors.surfaceAlt,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
@@ -154,7 +159,7 @@ const styles = StyleSheet.create({
   colInput: { flex: 1, textAlign: 'center' },
   colAction: { width: 72 },
   setRow: { paddingVertical: 4, paddingHorizontal: spacing.xs, borderRadius: radius.sm },
-  setRowDone: { backgroundColor: 'rgba(34,197,94,0.12)' },
+  setRowDone: { backgroundColor: colors.successTint },
   cell: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.sm,
@@ -173,4 +178,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs,
     paddingVertical: 10, borderRadius: radius.md, backgroundColor: colors.surfaceAlt,
   },
-});
+}));

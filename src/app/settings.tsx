@@ -1,14 +1,18 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Button, ErrorText, Input, Row, Screen, Txt } from '@/components/ui';
-import { colors, radius, spacing } from '@/constants/theme';
+import { radius, spacing } from '@/constants/theme';
 import { useUpdateProfile } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
 import type { WeightUnit } from '@/lib/units';
+import type { ThemeMode } from '@/store/themePreference';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 export default function SettingsScreen() {
+  const { colors, mode, setMode } = useTheme();
+  const styles = useStyles();
   const { session, profile, refreshProfile, signOut } = useAuth();
   const update = useUpdateProfile(session?.user.id);
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
@@ -54,6 +58,20 @@ export default function SettingsScreen() {
         <Txt variant="small">Weights are stored in kg and converted for display.</Txt>
       </View>
 
+      <View style={{ gap: spacing.sm }}>
+        <Txt variant="label">Appearance</Txt>
+        <Row style={styles.segment}>
+          {(['system', 'light', 'dark'] as ThemeMode[]).map((m) => (
+            <Pressable key={m} onPress={() => setMode(m)} style={[styles.segmentItem, mode === m && styles.segmentActive]}>
+              <Txt style={{ fontWeight: '700', color: mode === m ? colors.accentText : colors.text }}>
+                {m === 'system' ? 'System' : m === 'light' ? 'Light' : 'Dark'}
+              </Txt>
+            </Pressable>
+          ))}
+        </Row>
+        <Txt variant="small">Applies right away on this device. System follows your phone or computer setting.</Txt>
+      </View>
+
       {update.error ? <ErrorText>{update.error.message}</ErrorText> : null}
       <Button title={saved ? 'Saved' : 'Save changes'} onPress={onSave} loading={update.isPending} />
 
@@ -65,8 +83,8 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   segment: { backgroundColor: colors.surfaceAlt, borderRadius: radius.md, padding: 4, gap: 4 },
   segmentItem: { flex: 1, paddingVertical: 10, borderRadius: radius.sm, alignItems: 'center' },
   segmentActive: { backgroundColor: colors.accent },
-});
+}));

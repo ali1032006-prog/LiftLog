@@ -1,13 +1,16 @@
 import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 import { Button, ErrorText, Input, PasswordInput, Screen, Txt } from '@/components/ui';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 const USERNAME_RE = /^[A-Za-z0-9_.]{3,30}$/;
 
 export default function RegisterScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -134,7 +137,7 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   form: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.md },
-});
+}));

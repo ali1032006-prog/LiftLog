@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import type { ProfileSummaryRow } from '@/lib/types';
 import { Avatar, Button, Row, Txt } from './ui';
+import { makeStyles } from '@/hooks/useTheme';
 
 type Props = {
   user: ProfileSummaryRow;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function UserRow({ user, isMe, onPress, onToggleFollow, pending }: Props) {
+  const styles = useStyles();
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
       <Row style={{ flex: 1 }}>
@@ -36,7 +38,7 @@ export function UserRow({ user, isMe, onPress, onToggleFollow, pending }: Props)
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -45,4 +47,4 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
-});
+}));

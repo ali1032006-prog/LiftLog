@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { colors, radius, spacing } from '@/constants/theme';
+import { radius, spacing } from '@/constants/theme';
 import { Button, Txt } from './ui';
+import { makeStyles } from '@/hooks/useTheme';
 
 type DialogOptions = {
   title: string;
@@ -19,6 +20,7 @@ type OpenDialog = DialogOptions & { resolve: (ok: boolean) => void };
  * and embedded web views. Render `dialog` once in the screen that calls `confirm`/`notify`.
  */
 export function useDialog() {
+  const styles = useStyles();
   const [open, setOpen] = useState<OpenDialog | null>(null);
 
   const ask = useCallback(
@@ -69,8 +71,8 @@ export function useDialog() {
   return { confirm, notify, dialog };
 }
 
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+const useStyles = makeStyles((colors) => ({
+  backdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   box: {
     width: '100%',
     maxWidth: 380,
@@ -82,4 +84,4 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-});
+}));

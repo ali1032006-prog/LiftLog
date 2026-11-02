@@ -1,15 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { Button, Card, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import { useRoutines } from '@/hooks/queries';
 import { useDialog } from '@/components/Dialog';
 import { routineToPrefill } from '@/lib/prefill';
 import { useActiveWorkout, type Prefill } from '@/store/activeWorkout';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 export default function WorkoutTab() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const routines = useRoutines();
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
@@ -74,6 +77,6 @@ export default function WorkoutTab() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   startButton: { alignSelf: 'flex-start', marginTop: spacing.xs },
-});
+}));

@@ -169,7 +169,14 @@ export function useDeleteRoutine() {
 export function useExercises() {
   return useQuery({
     queryKey: keys.exercises,
-    queryFn: async () => unwrap(await supabase.from('exercises').select('*').order('name')) as Tables<'exercises'>[],
+    queryFn: async () => {
+      // RLS lets signed-in users read everyone's exercises (needed to show others' workouts),
+      // so the picker filters to the current user's own custom exercises.
+      const { data: auth } = await supabase.auth.getSession();
+      const uid = auth.session?.user.id;
+      if (!uid) return [] as Tables<'exercises'>[];
+      return unwrap(await supabase.from('exercises').select('*').eq('owner_id', uid).order('name')) as Tables<'exercises'>[];
+    },
   });
 }
 

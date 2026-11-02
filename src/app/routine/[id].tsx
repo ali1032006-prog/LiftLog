@@ -1,15 +1,16 @@
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
 import { ExerciseBlock, type EditableExercise } from '@/components/ExerciseBlock';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { Button, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import { useDeleteRoutine, useRoutine, useSaveRoutine } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
 import type { RoutineDetail } from '@/lib/types';
 import { uid, useActiveWorkout } from '@/store/activeWorkout';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 function fromRoutine(r: RoutineDetail): EditableExercise[] {
   return r.routine_exercises.map((re) => ({
@@ -35,6 +36,8 @@ export default function RoutineEditorScreen() {
 }
 
 function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; initial: RoutineDetail | undefined }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { unit } = useAuth();
   const save = useSaveRoutine();
   const del = useDeleteRoutine();
@@ -176,7 +179,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   title: { color: colors.text, fontSize: 24, fontWeight: '800' },
   notes: { color: colors.muted, fontSize: 15, minHeight: 24 },
-});
+}));

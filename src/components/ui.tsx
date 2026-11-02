@@ -18,7 +18,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, maxContentWidth, radius, spacing } from '@/constants/theme';
+import { maxContentWidth, radius, spacing, type Colors } from '@/constants/theme';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 // ---------- Layout ----------
 
@@ -33,6 +34,7 @@ type ScreenProps = {
 };
 
 export function Screen({ children, scroll, padded = true, safeTop, style, contentStyle }: ScreenProps) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const inner = [
     styles.content,
@@ -59,22 +61,27 @@ export function Screen({ children, scroll, padded = true, safeTop, style, conten
 }
 
 export function Card({ style, ...rest }: ViewProps) {
+  const styles = useStyles();
   return <View style={[styles.card, style]} {...rest} />;
 }
 
 export function Row({ style, ...rest }: ViewProps) {
+  const styles = useStyles();
   return <View style={[styles.row, style]} {...rest} />;
 }
 
 export function Divider() {
+  const styles = useStyles();
   return <View style={styles.divider} />;
 }
 
 export function Centered({ children }: { children: ReactNode }) {
+  const styles = useStyles();
   return <View style={styles.centered}>{children}</View>;
 }
 
 export function Loading() {
+  const { colors } = useTheme();
   return (
     <Centered>
       <ActivityIndicator color={colors.accent} />
@@ -87,10 +94,13 @@ export function Loading() {
 type TxtVariant = 'title' | 'h2' | 'h3' | 'body' | 'muted' | 'small' | 'label';
 
 export function Txt({ variant = 'body', style, ...rest }: TextProps & { variant?: TxtVariant }) {
-  return <Text style={[styles.text, textVariants[variant], style]} {...rest} />;
+  const { colors } = useTheme();
+  const styles = useStyles();
+  return <Text style={[styles.text, makeTextVariants(colors)[variant], style]} {...rest} />;
 }
 
 export function ErrorText({ children }: { children: ReactNode }) {
+  const styles = useStyles();
   if (!children) return null;
   return <Text style={styles.error}>{children}</Text>;
 }
@@ -98,6 +108,8 @@ export function ErrorText({ children }: { children: ReactNode }) {
 // ---------- Inputs ----------
 
 export function Input({ label, style, ...rest }: TextInputProps & { label?: string }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={{ gap: spacing.xs }}>
       {label ? <Txt variant="label">{label}</Txt> : null}
@@ -126,7 +138,9 @@ type ButtonProps = Omit<PressableProps, 'style'> & {
 };
 
 export function Button({ title, variant = 'primary', loading, small, icon, disabled, style, textStyle, ...rest }: ButtonProps) {
-  const v = buttonVariants[variant];
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const v = makeButtonVariants(colors)[variant];
   const isDisabled = disabled || loading;
   return (
     <Pressable
@@ -155,11 +169,13 @@ export function Button({ title, variant = 'primary', loading, small, icon, disab
 
 export function IconButton({
   name,
-  color = colors.text,
+  color,
   size = 22,
   style,
   ...rest
 }: PressableProps & { name: ComponentProps<typeof Ionicons>['name']; color?: string; size?: number }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -167,7 +183,7 @@ export function IconButton({
       style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.5 }, style as StyleProp<ViewStyle>]}
       {...rest}
     >
-      <Ionicons name={name} size={size} color={color} />
+      <Ionicons name={name} size={size} color={color ?? colors.text} />
     </Pressable>
   );
 }
@@ -175,6 +191,8 @@ export function IconButton({
 // ---------- Avatar ----------
 
 export function Avatar({ name, url, size = 40 }: { name: string | null | undefined; url?: string | null; size?: number }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const initials = (name ?? '?')
     .split(/[\s_.]+/)
     .filter(Boolean)
@@ -204,6 +222,8 @@ export function EmptyState({
   subtitle?: string;
   children?: ReactNode;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.empty}>
       <Ionicons name={icon} size={40} color={colors.faint} />
@@ -225,7 +245,7 @@ export function Stat({ value, label }: { value: string | number; label: string }
 
 // ---------- Styles ----------
 
-const textVariants: Record<TxtVariant, TextStyle> = {
+const makeTextVariants = (colors: Colors): Record<TxtVariant, TextStyle> => ({
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   h2: { fontSize: 20, fontWeight: '700' },
   h3: { fontSize: 16, fontWeight: '700' },
@@ -233,18 +253,18 @@ const textVariants: Record<TxtVariant, TextStyle> = {
   muted: { fontSize: 14, color: colors.muted },
   small: { fontSize: 12, color: colors.muted },
   label: { fontSize: 12, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: '600' },
-};
+});
 
-const buttonVariants: Record<ButtonVariant, { bg: string; text: string; border: string }> = {
+const makeButtonVariants = (colors: Colors): Record<ButtonVariant, { bg: string; text: string; border: string }> => ({
   primary: { bg: colors.accent, text: colors.accentText, border: colors.accent },
   secondary: { bg: colors.surfaceAlt, text: colors.text, border: colors.border },
   ghost: { bg: 'transparent', text: colors.accent, border: 'transparent' },
   danger: { bg: 'transparent', text: colors.danger, border: colors.danger },
   dangerSolid: { bg: colors.danger, text: '#FFFFFF', border: colors.danger },
-  success: { bg: colors.success, text: '#06240F', border: colors.success },
-};
+  success: { bg: colors.success, text: colors.successText, border: colors.success },
+});
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.bg },
   scrollContent: { flexGrow: 1, alignItems: 'center' },
   content: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center' },
@@ -286,11 +306,12 @@ const styles = StyleSheet.create({
   iconButton: { padding: spacing.xs, alignItems: 'center', justifyContent: 'center' },
   avatar: { backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
   empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl, paddingHorizontal: spacing.xl },
-});
+}));
 
 // ---------- Password input with show/hide toggle ----------
 
 export function PasswordInput(props: TextInputProps & { label?: string }) {
+  const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
   return (
     <View style={{ gap: spacing.xs }}>

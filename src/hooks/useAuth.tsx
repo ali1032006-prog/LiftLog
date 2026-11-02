@@ -42,8 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      void loadProfile(next?.user.id);
       if (!next) queryClient.clear();
+      // Supabase holds an auth lock while this callback runs; calling Supabase from inside it
+      // (e.g. after setSession) deadlocks. Defer the profile fetch until the callback returns.
+      setTimeout(() => void loadProfile(next?.user.id), 0);
     });
     return () => {
       mounted = false;

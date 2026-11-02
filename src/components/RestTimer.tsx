@@ -2,13 +2,15 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius, spacing } from '@/constants/theme';
+import { radius, spacing } from '@/constants/theme';
 import { formatClock } from '@/lib/format';
 import { useActiveWorkout } from '@/store/activeWorkout';
 import { Button, Row, Txt } from './ui';
+import { makeStyles } from '@/hooks/useTheme';
 
 /** Bottom bar with the rest countdown. Renders nothing when no rest is running. */
 export function RestTimer() {
+  const styles = useStyles();
   const restEndsAt = useActiveWorkout((s) => s.restEndsAt);
   const restTotal = useActiveWorkout((s) => s.restTotal);
   const adjustRest = useActiveWorkout((s) => s.adjustRest);
@@ -55,7 +57,7 @@ export function RestTimer() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: {
     backgroundColor: colors.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -66,4 +68,4 @@ const styles = StyleSheet.create({
   },
   track: { height: 4, backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, overflow: 'hidden' },
   fill: { height: 4, backgroundColor: colors.accent },
-});
+}));

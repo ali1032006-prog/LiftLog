@@ -2,9 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { IconButton } from '@/components/ui';
-import { colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
+
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       screenOptions={{

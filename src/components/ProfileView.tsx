@@ -1,15 +1,18 @@
 import { router } from 'expo-router';
 import { useCallback } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, maxContentWidth, spacing } from '@/constants/theme';
+import { maxContentWidth, spacing } from '@/constants/theme';
 import { useFollowMutation, useProfile, useUserWorkouts } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { WorkoutCard } from './WorkoutCard';
 import { Avatar, Button, EmptyState, ErrorText, Loading, Row, Stat, Txt } from './ui';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 /** Instagram-style profile: header with counts + the user's workouts. Used by the Account tab and other users' pages. */
 export function ProfileView({ userId, headerExtra }: { userId: string; headerExtra?: React.ReactNode }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { session, unit } = useAuth();
   const isMe = session?.user.id === userId;
   const profile = useProfile(userId);
@@ -96,7 +99,7 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   list: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', paddingHorizontal: spacing.lg },
   header: { gap: spacing.md, paddingVertical: spacing.lg },
-});
+}));

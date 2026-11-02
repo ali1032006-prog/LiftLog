@@ -1,14 +1,17 @@
 import { router } from 'expo-router';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { WorkoutCard } from '@/components/WorkoutCard';
 import { Button, EmptyState, ErrorText, Loading } from '@/components/ui';
-import { colors, maxContentWidth, spacing } from '@/constants/theme';
+import { maxContentWidth, spacing } from '@/constants/theme';
 import { useFeed } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { unit, session } = useAuth();
   const feed = useFeed();
   const insets = useSafeAreaInsets();
@@ -58,6 +61,6 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   list: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', paddingHorizontal: spacing.lg, paddingTop: spacing.md, flexGrow: 1 },
-});
+}));

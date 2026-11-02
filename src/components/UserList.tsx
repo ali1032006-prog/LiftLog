@@ -1,13 +1,14 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, maxContentWidth, spacing } from '@/constants/theme';
+import { maxContentWidth, spacing } from '@/constants/theme';
 import { useFollowMutation } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProfileSummaryRow } from '@/lib/types';
 import { UserRow } from './UserRow';
 import { EmptyState, ErrorText, Loading } from './ui';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 type Props = {
   users: ProfileSummaryRow[] | undefined;
@@ -19,6 +20,8 @@ type Props = {
 };
 
 export function UserList({ users, loading, error, emptyTitle, emptySubtitle, header }: Props) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { session } = useAuth();
   const follow = useFollowMutation(session?.user.id);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -51,6 +54,6 @@ export function UserList({ users, loading, error, emptyTitle, emptySubtitle, hea
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   list: { width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', paddingHorizontal: spacing.lg, flexGrow: 1 },
-});
+}));

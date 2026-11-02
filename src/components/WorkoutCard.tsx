@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import { formatDuration, timeAgo } from '@/lib/format';
 import type { WorkoutCard as WorkoutCardType, WorkoutCardExercise } from '@/lib/types';
 import { formatVolume, formatWeight, type WeightUnit } from '@/lib/units';
 import { Avatar, Card, Row, Txt } from './ui';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 type Props = {
   card: WorkoutCardType;
@@ -17,6 +18,7 @@ type Props = {
 const MAX_EXERCISES = 4;
 
 export function WorkoutCard({ card, unit, showUser = true, onPress, onPressUser }: Props) {
+  const styles = useStyles();
   const exercises = (Array.isArray(card.exercises) ? card.exercises : []) as unknown as WorkoutCardExercise[];
   const extra = exercises.length - MAX_EXERCISES;
   return (
@@ -68,6 +70,7 @@ export function WorkoutCard({ card, unit, showUser = true, onPress, onPressUser 
 }
 
 function Stat({ icon, label }: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string }) {
+  const { colors } = useTheme();
   return (
     <Row style={{ gap: 4 }}>
       <Ionicons name={icon} size={15} color={colors.muted} />
@@ -76,6 +79,6 @@ function Stat({ icon, label }: { icon: React.ComponentProps<typeof Ionicons>['na
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   exerciseList: { gap: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.sm },
-});
+}));

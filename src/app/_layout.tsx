@@ -1,33 +1,44 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
-import { colors } from '@/constants/theme';
+
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 15_000, retry: 1 } },
 });
 
-const theme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: colors.bg, card: colors.bg, text: colors.text, border: colors.border, primary: colors.accent },
-};
-
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider value={theme}>
-          <StatusBar style="light" />
-          <RootNavigator />
-        </ThemeProvider>
-      </AuthProvider>
+      <AppThemeProvider>
+        <AuthProvider>
+          <ThemedApp />
+        </AuthProvider>
+      </AppThemeProvider>
     </QueryClientProvider>
   );
 }
 
+function ThemedApp() {
+  const { colors, scheme } = useTheme();
+  const base = scheme === 'light' ? DefaultTheme : DarkTheme;
+  const navTheme = {
+    ...base,
+    colors: { ...base.colors, background: colors.bg, card: colors.bg, text: colors.text, border: colors.border, primary: colors.accent },
+  };
+  return (
+    <ThemeProvider value={navTheme}>
+      <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />
+      <RootNavigator />
+    </ThemeProvider>
+  );
+}
+
 function RootNavigator() {
+  const { colors } = useTheme();
   const { session, initializing } = useAuth();
 
   if (initializing) {

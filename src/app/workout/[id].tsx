@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Avatar, Button, Card, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
-import { colors, spacing } from '@/constants/theme';
+import { spacing } from '@/constants/theme';
 import { useCopyWorkout, useDeleteWorkout, useWorkout } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
@@ -10,8 +10,11 @@ import { formatDate, formatDuration } from '@/lib/format';
 import { workoutToPrefill } from '@/lib/prefill';
 import { formatVolume, formatWeight } from '@/lib/units';
 import { useActiveWorkout } from '@/store/activeWorkout';
+import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 export default function WorkoutDetailScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { session, unit } = useAuth();
   const { data: w, isLoading, error } = useWorkout(id);
@@ -123,8 +126,8 @@ function StatBox({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   setHeader: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingBottom: 4 },
   colSet: { width: 40 },
   col: { flex: 1 },
-});
+}));
