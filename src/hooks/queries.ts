@@ -58,7 +58,7 @@ export function useUserWorkouts(userId: string | undefined) {
 }
 
 const WORKOUT_DETAIL_SELECT =
-  '*, profile:profiles(id, username, display_name, avatar_url), workout_exercises(*, exercise:exercises(id, name), sets(*))';
+  '*, profile:profiles(id, username, display_name, avatar_url), workout_photos(id, path, position), workout_exercises(*, exercise:exercises(id, name), sets(*))';
 
 export function useWorkout(id: string | undefined) {
   return useQuery({
@@ -68,6 +68,7 @@ export function useWorkout(id: string | undefined) {
       const data = unwrap(await supabase.from('workouts').select(WORKOUT_DETAIL_SELECT).eq('id', id!).single()) as unknown as WorkoutDetail;
       data.workout_exercises.sort((a, b) => a.position - b.position);
       data.workout_exercises.forEach((we) => we.sets.sort((a, b) => a.position - b.position));
+      data.workout_photos.sort((a, b) => a.position - b.position);
       return data;
     },
   });
@@ -83,6 +84,40 @@ export function useFinishWorkout() {
       void qc.invalidateQueries({ queryKey: ['profile'] });
       void qc.invalidateQueries({ queryKey: keys.exercises });
     },
+  });
+}
+
+function invalidateWorkoutViews(qc: ReturnType<typeof useQueryClient>, workoutId: string) {
+  void qc.invalidateQueries({ queryKey: keys.workout(workoutId) });
+  void qc.invalidateQueries({ queryKey: keys.feed });
+  void qc.invalidateQueries({ queryKey: ['userWorkouts'] });
+}
+
+/** Attach an already-uploaded photo (storage path) to one of my finished workouts. */
+export function useAddWorkoutPhoto(workoutId: string, userId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ path, position }: { path: string; position: number }) => {
+      if (!userId) throw new Error('Not signed in');
+      const { error } = await supabase.from('workout_photos').insert({ workout_id: workoutId, user_id: userId, path, position });
+      if (error) {
+        await supabase.storage.from('workout-photos').remove([path]);
+        throw new Error(error.message);
+      }
+    },
+    onSuccess: () => invalidateWorkoutViews(qc, workoutId),
+  });
+}
+
+export function useRemoveWorkoutPhoto(workoutId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, path }: { id: string; path: string }) => {
+      const { error } = await supabase.from('workout_photos').delete().eq('id', id);
+      if (error) throw new Error(error.message);
+      await supabase.storage.from('workout-photos').remove([path]);
+    },
+    onSuccess: () => invalidateWorkoutViews(qc, workoutId),
   });
 }
 
@@ -254,7 +289,7 @@ export function useFollowMutation(myId: string | undefined) {
 export function useUpdateProfile(myId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (patch: Partial<Pick<Tables<'profiles'>, 'display_name' | 'bio' | 'weight_unit' | 'username'>>) => {
+    mutationFn: async (patch: Partial<Pick<Tables<'profiles'>, 'display_name' | 'bio' | 'weight_unit' | 'username' | 'avatar_url'>>) => {
       if (!myId) throw new Error('Not signed in');
       const { error } = await supabase.from('profiles').update(patch).eq('id', myId);
       if (error) throw new Error(error.message);
@@ -262,6 +297,9 @@ export function useUpdateProfile(myId: string | undefined) {
     onSuccess: () => {
       if (myId) void qc.invalidateQueries({ queryKey: keys.profile(myId) });
       void qc.invalidateQueries({ queryKey: keys.feed });
+      void qc.invalidateQueries({ queryKey: ['userWorkouts'] });
+      void qc.invalidateQueries({ queryKey: ['followers'] });
+      void qc.invalidateQueries({ queryKey: ['following'] });
     },
   });
 }

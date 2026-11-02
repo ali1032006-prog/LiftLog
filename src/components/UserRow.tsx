@@ -16,7 +16,7 @@ type Props = {
 export function UserRow({ user, isMe, onPress, onToggleFollow, pending }: Props) {
   const styles = useStyles();
   return (
-    <PressableScale onPress={onPress} pressedScale={0.98} style={styles.row} accessibilityRole="button">
+    <PressableScale onPress={onPress} pressedScale={0.98} style={styles.row}>
       <Row style={{ flex: 1 }}>
         <Avatar name={user.display_name || user.username} url={user.avatar_url} size={44} />
         <View style={{ flex: 1 }}>

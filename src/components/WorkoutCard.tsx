@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import { photoUrl } from '@/lib/photos';
 import { PressableScale } from './motion';
-import { spacing } from '@/constants/theme';
+import { spacing, radius } from '@/constants/theme';
 import { formatDuration, timeAgo } from '@/lib/format';
 import type { WorkoutCard as WorkoutCardType, WorkoutCardExercise } from '@/lib/types';
 import { asUnit, formatVolume, formatWeight } from '@/lib/units';
@@ -21,6 +23,7 @@ export function WorkoutCard({ card, showUser = true, onPress, onPressUser }: Pro
   const styles = useStyles();
   const exercises = (Array.isArray(card.exercises) ? card.exercises : []) as unknown as WorkoutCardExercise[];
   const extra = exercises.length - MAX_EXERCISES;
+  const photos = (Array.isArray(card.photos) ? card.photos : []) as string[];
   return (
     <PressableScale onPress={onPress} pressedScale={0.98} accessibilityRole="button">
       <Card>
@@ -37,6 +40,18 @@ export function WorkoutCard({ card, showUser = true, onPress, onPressUser }: Pro
         ) : (
           <Txt variant="small">{timeAgo(card.started_at)}</Txt>
         )}
+
+        {photos.length > 0 ? (
+          <View>
+            <Image source={{ uri: photoUrl('workout-photos', photos[0]!) }} style={styles.photo} contentFit="cover" transition={150} />
+            {photos.length > 1 ? (
+              <View style={styles.photoCount}>
+                <Ionicons name="images-outline" size={12} color="#FFFFFF" />
+                <Txt variant="small" style={{ color: '#FFFFFF', fontWeight: '700' }}>{photos.length}</Txt>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
 
         <Txt variant="h2">{card.title}</Txt>
         {card.notes ? <Txt variant="muted" numberOfLines={2}>{card.notes}</Txt> : null}
@@ -80,5 +95,10 @@ function Stat({ icon, label }: { icon: React.ComponentProps<typeof Ionicons>['na
 }
 
 const useStyles = makeStyles((colors) => ({
+  photo: { width: '100%', aspectRatio: 16 / 9, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  photoCount: {
+    position: 'absolute', right: 8, bottom: 8, flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: 'rgba(0,0,0,0.6)',
+  },
   exerciseList: { gap: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.sm },
 }));

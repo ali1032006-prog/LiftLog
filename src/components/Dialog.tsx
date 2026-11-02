@@ -24,9 +24,16 @@ type OpenDialog = DialogOptions & { resolve: (ok: boolean) => void };
 export function useDialog() {
   const styles = useStyles();
   const [open, setOpen] = useState<OpenDialog | null>(null);
+  // Last shown content, kept after closing so the fade-out does not flash default buttons.
+  const [shown, setShown] = useState<OpenDialog | null>(null);
 
   const ask = useCallback(
-    (opts: DialogOptions) => new Promise<boolean>((resolve) => setOpen({ ...opts, resolve })),
+    (opts: DialogOptions) =>
+      new Promise<boolean>((resolve) => {
+        const next = { ...opts, resolve };
+        setShown(next);
+        setOpen(next);
+      }),
     [],
   );
 
@@ -53,15 +60,15 @@ export function useDialog() {
       <Pressable style={styles.backdrop} onPress={() => close(false)}>
         <Animated.View entering={enterPop} style={styles.box}>
         <Pressable onPress={() => {}} style={{ gap: spacing.md }}>
-          <Txt variant="h2">{open?.title}</Txt>
-          {open?.message ? <Txt variant="muted">{open.message}</Txt> : null}
+          <Txt variant="h2">{shown?.title}</Txt>
+          {shown?.message ? <Txt variant="muted">{shown.message}</Txt> : null}
           <View style={styles.actions}>
-            {open?.cancelLabel !== null ? (
-              <Button variant="secondary" title={open?.cancelLabel ?? 'Cancel'} onPress={() => close(false)} style={{ flex: 1 }} />
+            {shown?.cancelLabel !== null ? (
+              <Button variant="secondary" title={shown?.cancelLabel ?? 'Cancel'} onPress={() => close(false)} style={{ flex: 1 }} />
             ) : null}
             <Button
-              variant={open?.destructive ? 'dangerSolid' : 'primary'}
-              title={open?.confirmLabel ?? 'OK'}
+              variant={shown?.destructive ? 'dangerSolid' : 'primary'}
+              title={shown?.confirmLabel ?? 'OK'}
               onPress={() => close(true)}
               style={{ flex: 1 }}
             />

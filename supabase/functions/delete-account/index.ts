@@ -40,6 +40,16 @@ Deno.serve(async (req: Request) => {
   const workouts = await admin.from('workouts').delete().eq('user_id', user.id);
   if (workouts.error) return json({ error: 'Could not delete workouts' }, 500);
 
+  // Remove uploaded files (profile picture and workout photos) stored under the user's folder.
+  for (const bucket of ['avatars', 'workout-photos']) {
+    for (;;) {
+      const { data: files } = await admin.storage.from(bucket).list(user.id, { limit: 100 });
+      if (!files || files.length === 0) break;
+      await admin.storage.from(bucket).remove(files.map((f) => `${user.id}/${f.name}`));
+      if (files.length < 100) break;
+    }
+  }
+
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) return json({ error: 'Could not delete account' }, 500);
   return json({ deleted: true });

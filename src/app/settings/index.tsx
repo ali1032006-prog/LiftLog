@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useDialog } from '@/components/Dialog';
+import { SelectMenu, type SelectOption } from '@/components/Popover';
+import type { ThemeMode } from '@/store/themePreference';
 import { SettingsGroup, SettingsRow } from '@/components/SettingsRow';
 import { Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
@@ -8,10 +10,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 
 const MODE_LABEL = { system: 'System', light: 'Light', dark: 'Dark' } as const;
+const THEME_OPTIONS: SelectOption<ThemeMode>[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
 
 export default function SettingsScreen() {
   const { session, profile, signOut } = useAuth();
-  const { mode } = useTheme();
+  const { mode, setMode } = useTheme();
   const queryClient = useQueryClient();
   const { confirm, notify, dialog } = useDialog();
 
@@ -34,7 +41,18 @@ export default function SettingsScreen() {
       </SettingsGroup>
 
       <SettingsGroup title="Preferences">
-        <SettingsRow icon="color-palette-outline" label="Appearance" value={MODE_LABEL[mode]} onPress={() => router.push('/settings/appearance')} />
+        <SettingsRow
+          icon="color-palette-outline"
+          label="Appearance"
+          right={
+            <SelectMenu<ThemeMode>
+              options={THEME_OPTIONS}
+              value={mode}
+              onChange={setMode}
+              accessibilityLabel={`Appearance: ${MODE_LABEL[mode]}`}
+            />
+          }
+        />
         <SettingsRow icon="barbell-outline" label="Workout" onPress={() => router.push('/settings/workout')} />
       </SettingsGroup>
 

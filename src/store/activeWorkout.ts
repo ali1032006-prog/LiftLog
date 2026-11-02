@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { WeightUnit } from '@/lib/units';
+import { supabase } from '@/lib/supabase';
 import { usePreferences } from './preferences';
 
 export type ActiveSet = {
@@ -26,6 +27,8 @@ export type ActiveWorkout = {
   startedAt: string; // ISO
   routineId: string | null;
   exercises: ActiveExercise[];
+  /** Storage paths (workout-photos bucket) uploaded during this workout. */
+  photos: string[];
 };
 
 export type Prefill = {
@@ -41,7 +44,12 @@ type State = {
   restEndsAt: number | null;
   restTotal: number;
   start: (prefill?: Prefill) => void;
+  /** Throw the workout away and delete any photos uploaded for it. */
   discard: () => void;
+  /** Clear after a successful finish; photos now belong to the saved workout. */
+  clear: () => void;
+  addPhoto: (path: string) => void;
+  removePhoto: (path: string) => void;
   setTitle: (title: string) => void;
   setNotes: (notes: string) => void;
   addExercise: (name: string, unit?: WeightUnit) => void;
@@ -79,6 +87,7 @@ export const useActiveWorkout = create<State>()(
             notes: prefill?.notes ?? '',
             startedAt: new Date().toISOString(),
             routineId: prefill?.routineId ?? null,
+            photos: [],
             exercises: (prefill?.exercises ?? []).map((e) => ({
               id: uid(),
               name: e.name,
@@ -95,7 +104,18 @@ export const useActiveWorkout = create<State>()(
           },
         }),
 
-      discard: () => set({ workout: null, restEndsAt: null }),
+      discard: () => {
+        // Photos were uploaded as they were added; remove them since the workout is not being saved.
+        const paths = get().workout?.photos ?? [];
+        if (paths.length) void supabase.storage.from('workout-photos').remove(paths);
+        set({ workout: null, restEndsAt: null });
+      },
+      clear: () => set({ workout: null, restEndsAt: null }),
+      addPhoto: (path) => mutate(set, get, (w) => ({ ...w, photos: [...(w.photos ?? []), path] })),
+      removePhoto: (path) => {
+        mutate(set, get, (w) => ({ ...w, photos: (w.photos ?? []).filter((p) => p !== path) }));
+        void supabase.storage.from('workout-photos').remove([path]);
+      },
 
       setTitle: (title) => mutate(set, get, (w) => ({ ...w, title })),
       setNotes: (notes) => mutate(set, get, (w) => ({ ...w, notes })),
@@ -170,11 +190,14 @@ export const useActiveWorkout = create<State>()(
     {
       name: 'liftlog.activeWorkout.v1',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 2,
+      version: 3,
       // v1 workouts had no per-exercise unit
       migrate: (state) => {
         const s = state as { workout?: ActiveWorkout | null };
-        if (s.workout) s.workout.exercises = s.workout.exercises.map((e) => ({ ...e, unit: e.unit ?? 'kg' }));
+        if (s.workout) {
+          s.workout.exercises = s.workout.exercises.map((e) => ({ ...e, unit: e.unit ?? 'kg' }));
+          s.workout.photos = s.workout.photos ?? [];
+        }
         return s as never;
       },
       partialize: (s) => ({ workout: s.workout, restEndsAt: s.restEndsAt, restTotal: s.restTotal }),
@@ -208,6 +231,7 @@ export function toFinishPayload(w: ActiveWorkout, finishedAt = new Date()) {
     started_at: started.toISOString(),
     finished_at: finishedAt.toISOString(),
     duration_seconds: Math.max(0, Math.round((finishedAt.getTime() - started.getTime()) / 1000)),
+    photos: w.photos ?? [],
     exercises: w.exercises
       .filter((e) => e.name.trim().length > 0)
       .map((e) => ({

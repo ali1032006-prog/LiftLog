@@ -167,7 +167,7 @@ const useStyles = makeStyles((colors) => ({
     textAlign: 'center',
   },
   check: {
-    width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center',
+    width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center',
     backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border,
   },
   checkDone: { backgroundColor: colors.success, borderColor: colors.success },

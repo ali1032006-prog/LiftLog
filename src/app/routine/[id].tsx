@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
 import { ExerciseBlock, type EditableExercise } from '@/components/ExerciseBlock';
 import { ExercisePicker } from '@/components/ExercisePicker';
-import { Button, EmptyState, ErrorText, Loading, Row, Screen } from '@/components/ui';
+import { Button, EmptyState, ErrorText, Loading, Screen } from '@/components/ui';
 import { spacing } from '@/constants/theme';
 import { useDeleteRoutine, useRoutine, useSaveRoutine } from '@/hooks/queries';
 import { asUnit } from '@/lib/units';
 import { useDialog } from '@/components/Dialog';
 import type { RoutineDetail } from '@/lib/types';
-import { uid, useActiveWorkout } from '@/store/activeWorkout';
+import { uid } from '@/store/activeWorkout';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { AnimatedItem } from '@/components/motion';
 
@@ -42,8 +42,6 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
   const styles = useStyles();
   const save = useSaveRoutine();
   const del = useDeleteRoutine();
-  const active = useActiveWorkout((s) => s.workout);
-  const start = useActiveWorkout((s) => s.start);
 
   const [title, setTitle] = useState(initial?.title ?? '');
   const [notes, setNotes] = useState(initial?.notes ?? '');
@@ -79,20 +77,6 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
     } catch {
       /* shown below */
     }
-  };
-
-  const onStart = async () => {
-    if (active) {
-      const ok = await confirm('Discard current workout?', 'You already have a workout in progress.', 'Discard', true);
-      if (!ok) return;
-    }
-    start({
-      title: title.trim() || 'Routine',
-      notes,
-      routineId: isNew ? null : id,
-      exercises: exercises.map((e) => ({ name: e.name, notes: e.notes, restSeconds: e.restSeconds, unit: e.unit, sets: e.sets })),
-    });
-    router.push('/workout/active');
   };
 
   const onDelete = async () => {
@@ -162,10 +146,6 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
 
         <Button variant="secondary" title="Add Exercise" icon="add" onPress={() => setPickerOpen(true)} />
 
-        <Row style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-          <Button title="Save" onPress={onSave} loading={save.isPending} style={{ flex: 1 }} />
-          <Button title="Start Routine" icon="play" variant="success" onPress={onStart} disabled={exercises.length === 0} style={{ flex: 1 }} />
-        </Row>
         {!isNew ? (
           <View style={{ marginTop: spacing.lg }}>
             <Button variant="danger" title="Delete routine" icon="trash-outline" onPress={onDelete} loading={del.isPending} />

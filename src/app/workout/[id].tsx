@@ -3,7 +3,10 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Avatar, Button, Card, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
-import { useCopyWorkout, useDeleteWorkout, useRoutines, useWorkout } from '@/hooks/queries';
+import { useAddWorkoutPhoto, useCopyWorkout, useDeleteWorkout, useRemoveWorkoutPhoto, useRoutines, useWorkout } from '@/hooks/queries';
+import { PhotoStrip } from '@/components/PhotoStrip';
+import { pickImage, uploadPhoto } from '@/lib/photos';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
 import { formatDate, formatDuration } from '@/lib/format';
@@ -21,6 +24,9 @@ export default function WorkoutDetailScreen() {
   const copy = useCopyWorkout();
   const routines = useRoutines();
   const del = useDeleteWorkout();
+  const addPhoto = useAddWorkoutPhoto(id ?? '', session?.user.id);
+  const removePhoto = useRemoveWorkoutPhoto(id ?? '');
+  const [uploading, setUploading] = useState(false);
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
   const { confirm, notify, dialog } = useDialog();
@@ -56,6 +62,27 @@ export default function WorkoutDetailScreen() {
     router.push('/workout/active');
   };
 
+  const onAddPhoto = async () => {
+    if (!session) return;
+    try {
+      const image = await pickImage();
+      if (!image) return;
+      setUploading(true);
+      const path = await uploadPhoto('workout-photos', session.user.id, image, 1600);
+      await addPhoto.mutateAsync({ path, position: w.workout_photos.length + 1 });
+    } catch (e) {
+      await notify('Could not add photo', e instanceof Error ? e.message : undefined);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const onRemovePhoto = async (path: string) => {
+    const photo = w.workout_photos.find((p) => p.path === path);
+    if (!photo) return;
+    if (await confirm('Remove this photo?', undefined, 'Remove', true)) removePhoto.mutate({ id: photo.id, path });
+  };
+
   const onDelete = async () => {
     if (!(await confirm('Delete workout?', 'This cannot be undone.', 'Delete', true))) return;
     await del.mutateAsync(w.id);
@@ -76,6 +103,16 @@ export default function WorkoutDetailScreen() {
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
         </Row>
       </Pressable>
+
+      {w.workout_photos.length > 0 || isMine ? (
+        <PhotoStrip
+          size={140}
+          paths={w.workout_photos.map((p) => p.path)}
+          uploading={uploading}
+          onAdd={isMine ? onAddPhoto : undefined}
+          onRemove={isMine ? onRemovePhoto : undefined}
+        />
+      ) : null}
 
       <View>
         <Txt variant="title">{w.title}</Txt>

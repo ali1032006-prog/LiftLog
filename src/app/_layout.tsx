@@ -71,7 +71,6 @@ function RootNavigator() {
         <Stack.Screen name="search" options={{ title: 'Find people' }} />
         <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
         <Stack.Screen name="settings/account" options={{ title: 'Account' }} />
-        <Stack.Screen name="settings/appearance" options={{ title: 'Appearance' }} />
         <Stack.Screen name="settings/workout" options={{ title: 'Workout' }} />
         <Stack.Screen name="settings/about" options={{ title: 'About' }} />
         <Stack.Screen name="edit-profile" options={{ title: 'Edit profile' }} />

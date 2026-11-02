@@ -1,25 +1,31 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { View } from 'react-native';
-import { AnimatedItem, PressableScale } from '@/components/motion';
+import { AnimatedItem } from '@/components/motion';
 import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { Button, Card, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
-import { useRoutines } from '@/hooks/queries';
+import { useDeleteRoutine, useRoutines } from '@/hooks/queries';
+import { ActionMenu } from '@/components/Popover';
 import { useDialog } from '@/components/Dialog';
 import { routineToPrefill } from '@/lib/prefill';
 import { MAX_ROUTINES } from '@/lib/units';
 import { useActiveWorkout, type Prefill } from '@/store/activeWorkout';
-import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { makeStyles } from '@/hooks/useTheme';
 
 export default function WorkoutTab() {
-  const { colors } = useTheme();
   const styles = useStyles();
   const routines = useRoutines();
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
   const { confirm, dialog } = useDialog();
   const atLimit = (routines.data?.length ?? 0) >= MAX_ROUTINES;
+  const deleteRoutine = useDeleteRoutine();
+
+  const onDeleteRoutine = async (id: string, title: string) => {
+    if (await confirm(`Delete "${title}"?`, 'This routine will be removed. Workouts you logged from it are kept.', 'Delete', true)) {
+      deleteRoutine.mutate(id);
+    }
+  };
 
   const begin = async (prefill?: Prefill) => {
     if (active) {
@@ -71,11 +77,16 @@ export default function WorkoutTab() {
 
         {routines.data?.map((r, i) => (
           <AnimatedItem key={r.id} index={i}>
-          <PressableScale onPress={() => router.push(`/routine/${r.id}`)} pressedScale={0.98} accessibilityRole="button">
             <Card>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Txt variant="h3" style={{ flex: 1 }} numberOfLines={1}>{r.title}</Txt>
-                <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+                <ActionMenu
+                  accessibilityLabel={`Options for ${r.title}`}
+                  actions={[
+                    { label: 'Edit', icon: 'create-outline', onPress: () => router.push(`/routine/${r.id}`) },
+                    { label: 'Delete', icon: 'trash-outline', danger: true, onPress: () => onDeleteRoutine(r.id, r.title) },
+                  ]}
+                />
               </Row>
               <Txt variant="muted" numberOfLines={2}>
                 {r.routine_exercises.length === 0
@@ -84,7 +95,6 @@ export default function WorkoutTab() {
               </Txt>
               <Button small title="Start Routine" onPress={() => begin(routineToPrefill(r))} style={styles.startButton} />
             </Card>
-          </PressableScale>
           </AnimatedItem>
         ))}
       </View>

@@ -81,6 +81,12 @@ export type Database = {
           { foreignKeyName: "workout_exercises_workout_id_fkey"; columns: ["workout_id"]; isOneToOne: false; referencedRelation: "workouts"; referencedColumns: ["id"] },
         ]
       }
+      workout_photos: {
+        Row: { created_at: string; id: string; path: string; position: number; user_id: string; workout_id: string }
+        Insert: { created_at?: string; id?: string; path: string; position?: number; user_id: string; workout_id: string }
+        Update: { created_at?: string; id?: string; path?: string; position?: number; user_id?: string; workout_id?: string }
+        Relationships: []
+      }
       workouts: {
         Row: { created_at: string; duration_seconds: number | null; finished_at: string | null; id: string; notes: string | null; started_at: string; title: string; user_id: string }
         Insert: { created_at?: string; duration_seconds?: number | null; finished_at?: string | null; id?: string; notes?: string | null; started_at?: string; title?: string; user_id: string }
@@ -107,6 +113,7 @@ export type Database = {
           user_id: string | null
           username: string | null
           volume_unit: string | null
+          photos: Json | null
           workout_id: string | null
         }
         Relationships: [
@@ -180,8 +187,11 @@ export type WorkoutCardExercise = {
   weight_unit?: string
 }
 
+export type WorkoutPhoto = Pick<Tables<"workout_photos">, "id" | "path" | "position">
+
 export type WorkoutDetail = Tables<"workouts"> & {
   profile: Pick<Profile, "id" | "username" | "display_name" | "avatar_url">
+  workout_photos: WorkoutPhoto[]
   workout_exercises: (Tables<"workout_exercises"> & {
     exercise: Pick<Tables<"exercises">, "id" | "name">
     sets: Tables<"sets">[]

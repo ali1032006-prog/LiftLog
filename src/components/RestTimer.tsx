@@ -7,7 +7,7 @@ import { radius, spacing } from '@/constants/theme';
 import { formatClock } from '@/lib/format';
 import { useActiveWorkout } from '@/store/activeWorkout';
 import { usePreferences } from '@/store/preferences';
-import { enterCard, exitFade } from './motion';
+import { enterFade, exitFade } from './motion';
 import { Button, Row, Txt } from './ui';
 import { makeStyles } from '@/hooks/useTheme';
 
@@ -57,7 +57,7 @@ export function RestTimer() {
   if (!restEndsAt) return null;
 
   return (
-    <Animated.View entering={enterCard(0)} exiting={exitFade} style={[styles.wrap, { paddingBottom: insets.bottom + spacing.sm }]}>
+    <Animated.View entering={enterFade} exiting={exitFade} style={[styles.wrap, { paddingBottom: insets.bottom + spacing.sm }]}>
       <View style={styles.track}>
         <Animated.View style={[styles.fill, barStyle]} />
       </View>

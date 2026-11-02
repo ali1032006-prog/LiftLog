@@ -16,6 +16,9 @@ import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { AnimatedItem } from '@/components/motion';
+import { PhotoStrip } from '@/components/PhotoStrip';
+import { useAuth } from '@/hooks/useAuth';
+import { pickImage, uploadPhoto } from '@/lib/photos';
 
 export default function ActiveWorkoutScreen() {
   const { colors } = useTheme();
@@ -25,6 +28,8 @@ export default function ActiveWorkoutScreen() {
   const finish = useFinishWorkout();
   const insets = useSafeAreaInsets();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const { session } = useAuth();
+  const [uploading, setUploading] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const leaving = useRef(false);
   const { confirm, notify, dialog } = useDialog();
@@ -58,6 +63,21 @@ export default function ActiveWorkoutScreen() {
   const elapsed = (now - new Date(workout.startedAt).getTime()) / 1000;
   const completedSets = workout.exercises.reduce((n, e) => n + e.sets.filter((x) => x.completed).length, 0);
 
+  const onAddPhoto = async () => {
+    if (!session) return;
+    try {
+      const image = await pickImage();
+      if (!image) return;
+      setUploading(true);
+      const path = await uploadPhoto('workout-photos', session.user.id, image, 1600);
+      s.addPhoto(path);
+    } catch (e) {
+      await notify('Could not add photo', e instanceof Error ? e.message : undefined);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const onDiscard = async () => {
     const ok = await confirm('Discard workout?', 'All sets from this workout will be lost.', 'Discard', true);
     if (ok) s.discard();
@@ -74,7 +94,7 @@ export default function ActiveWorkoutScreen() {
       const id = await finish.mutateAsync(toFinishPayload(workout));
       leaving.current = true;
       router.replace(`/workout/${id}`);
-      s.discard();
+      s.clear();
     } catch {
       // error shown below
     }
@@ -110,6 +130,7 @@ export default function ActiveWorkoutScreen() {
             placeholderTextColor={colors.faint}
             multiline
           />
+          <PhotoStrip paths={workout.photos ?? []} onAdd={onAddPhoto} onRemove={s.removePhoto} uploading={uploading} />
           {finish.error ? <ErrorText>{finish.error.message}</ErrorText> : null}
 
           {workout.exercises.length === 0 ? (

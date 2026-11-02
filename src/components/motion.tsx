@@ -128,10 +128,10 @@ const useStyles = makeStyles((colors) => ({
   optionSmall: { flexGrow: 0, flexShrink: 0, flexBasis: SMALL_OPTION, width: SMALL_OPTION, paddingVertical: 4 },
 }));
 
-/** Wrapper that animates a list item in with the shared spring and slides siblings smoothly. */
+/** Wrapper that fades a removed item out and springs its siblings into place. No entrance animation. */
 export function AnimatedItem({ index = 0, children, style }: { index?: number; children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return (
-    <Animated.View entering={enterCard(index)} exiting={exitFade} layout={layoutSpring} style={style}>
+    <Animated.View exiting={exitFade} layout={layoutSpring} style={style}>
       {children}
     </Animated.View>
   );

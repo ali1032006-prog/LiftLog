@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Button, ErrorText, Input, Screen, Txt } from '@/components/ui';
+import { Avatar, Button, ErrorText, Input, Row, Screen, Txt } from '@/components/ui';
+import { pathFromPublicUrl, photoUrl, pickImage, removePhotos, uploadPhoto } from '@/lib/photos';
 import { spacing } from '@/constants/theme';
 import { useUpdateProfile } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +20,42 @@ export default function EditProfileScreen() {
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [available, setAvailable] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+
+  const setAvatar = async (url: string | null) => {
+    const old = pathFromPublicUrl('avatars', profile?.avatar_url);
+    await update.mutateAsync({ avatar_url: url });
+    await refreshProfile();
+    if (old) await removePhotos('avatars', [old]);
+  };
+
+  const onChangePhoto = async () => {
+    if (!session) return;
+    setError(null);
+    try {
+      const image = await pickImage({ square: true });
+      if (!image) return;
+      setPhotoBusy(true);
+      const path = await uploadPhoto('avatars', session.user.id, image, 512);
+      await setAvatar(photoUrl('avatars', path));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not update your photo.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const onRemovePhoto = async () => {
+    setError(null);
+    setPhotoBusy(true);
+    try {
+      await setAvatar(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not remove your photo.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
 
   const clean = username.trim();
   const changed = clean.toLowerCase() !== (profile?.username ?? '').toLowerCase();
@@ -61,6 +98,13 @@ export default function EditProfileScreen() {
 
   return (
     <Screen scroll contentStyle={{ paddingVertical: spacing.lg, gap: spacing.lg }}>
+      <View style={{ alignItems: 'center', gap: spacing.md }}>
+        <Avatar name={profile?.display_name || profile?.username} url={profile?.avatar_url} size={96} />
+        <Row style={{ gap: spacing.sm }}>
+          <Button small variant="secondary" icon="camera-outline" title={profile?.avatar_url ? 'Change photo' : 'Add photo'} onPress={onChangePhoto} loading={photoBusy} />
+          {profile?.avatar_url ? <Button small variant="ghost" title="Remove photo" onPress={onRemovePhoto} disabled={photoBusy} /> : null}
+        </Row>
+      </View>
       <View style={{ gap: spacing.xs }}>
         <Input
           label="Username"
