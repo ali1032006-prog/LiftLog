@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pressable, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
+  Easing,
   FadeIn,
   FadeInDown,
   FadeOut,
@@ -20,11 +21,8 @@ export const SPRING = { damping: 20, stiffness: 220, mass: 0.7 } as const;
 /** Entering/exiting presets built on the same spring. */
 export const enterCard = (index = 0) => FadeInDown.springify().damping(SPRING.damping).stiffness(SPRING.stiffness).mass(SPRING.mass).delay(Math.min(index, 8) * 40);
 export const enterPop = ZoomIn.springify().damping(SPRING.damping).stiffness(SPRING.stiffness).mass(SPRING.mass);
-/**
- * Dropdown menus pop in twice as fast. A spring's settle time scales with sqrt(mass / stiffness),
- * so 4x stiffness halves it; doubling damping keeps the same (slight) bounce.
- */
-export const enterMenu = ZoomIn.springify().damping(SPRING.damping * 2).stiffness(SPRING.stiffness * 4).mass(SPRING.mass);
+/** Dropdown menus pop in over exactly 0.2 seconds (timed, not a spring, so the length is fixed). */
+export const enterMenu = ZoomIn.duration(200).easing(Easing.out(Easing.cubic));
 export const enterFade = FadeIn.duration(160);
 export const exitFade = FadeOut.duration(140);
 export const layoutSpring = LinearTransition.springify().damping(SPRING.damping).stiffness(SPRING.stiffness).mass(SPRING.mass);
