@@ -1,7 +1,7 @@
 import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { Button, ErrorText, Input, Screen, Txt } from '@/components/ui';
+import { Button, ErrorText, Input, PasswordInput, Screen, Txt } from '@/components/ui';
 import { colors, spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
@@ -110,11 +110,10 @@ export default function RegisterScreen() {
           keyboardType="email-address"
           placeholder="you@example.com"
         />
-        <Input
+        <PasswordInput
           label="Password"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
           autoComplete="new-password"
           placeholder="At least 6 characters"
           onSubmitEditing={signUp}

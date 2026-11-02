@@ -5,7 +5,7 @@ import { Button, ErrorText, Input, Row, Screen, Txt } from '@/components/ui';
 import { colors, radius, spacing } from '@/constants/theme';
 import { useUpdateProfile } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
-import { confirm } from '@/lib/confirm';
+import { useDialog } from '@/components/Dialog';
 import type { WeightUnit } from '@/lib/units';
 
 export default function SettingsScreen() {
@@ -15,6 +15,7 @@ export default function SettingsScreen() {
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [unit, setUnit] = useState<WeightUnit>(profile?.weight_unit === 'lb' ? 'lb' : 'kg');
   const [saved, setSaved] = useState(false);
+  const { confirm, dialog } = useDialog();
 
   const onSave = async () => {
     try {
@@ -33,6 +34,7 @@ export default function SettingsScreen() {
 
   return (
     <Screen scroll contentStyle={{ paddingVertical: spacing.lg, gap: spacing.lg }}>
+      {dialog}
       <View style={{ gap: spacing.md }}>
         <Txt variant="label">Profile</Txt>
         <Input label="Username" value={profile?.username ?? ''} editable={false} style={{ opacity: 0.6 }} />

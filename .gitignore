@@ -45,3 +45,4 @@ example
 # env
 .env
 supabase/*.local.md
+.vercel

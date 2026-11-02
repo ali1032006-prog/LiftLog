@@ -1,7 +1,7 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { Button, ErrorText, Input, Screen, Txt } from '@/components/ui';
+import { Button, ErrorText, Input, PasswordInput, Screen, Txt } from '@/components/ui';
 import { colors, spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
@@ -36,11 +36,10 @@ export default function LoginScreen() {
           textContentType="emailAddress"
           placeholder="you@example.com"
         />
-        <Input
+        <PasswordInput
           label="Password"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
           autoComplete="password"
           textContentType="password"
           placeholder="••••••••"

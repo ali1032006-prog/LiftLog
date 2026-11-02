@@ -9,7 +9,7 @@ import { Button, EmptyState, ErrorText, Row, Txt } from '@/components/ui';
 import { colors, maxContentWidth, spacing } from '@/constants/theme';
 import { useFinishWorkout } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
-import { confirm, notify } from '@/lib/confirm';
+import { useDialog } from '@/components/Dialog';
 import { formatClock } from '@/lib/format';
 import { toFinishPayload, useActiveWorkout } from '@/store/activeWorkout';
 
@@ -22,6 +22,7 @@ export default function ActiveWorkoutScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const leaving = useRef(false);
+  const { confirm, notify, dialog } = useDialog();
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -124,6 +125,7 @@ export default function ActiveWorkoutScreen() {
       </ScrollView>
 
       <RestTimer />
+      {dialog}
       <ExercisePicker visible={pickerOpen} onClose={() => setPickerOpen(false)} onPick={s.addExercise} />
     </KeyboardAvoidingView>
   );

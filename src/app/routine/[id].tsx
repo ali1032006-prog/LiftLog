@@ -7,7 +7,7 @@ import { Button, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/comp
 import { colors, spacing } from '@/constants/theme';
 import { useDeleteRoutine, useRoutine, useSaveRoutine } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
-import { confirm } from '@/lib/confirm';
+import { useDialog } from '@/components/Dialog';
 import type { RoutineDetail } from '@/lib/types';
 import { uid, useActiveWorkout } from '@/store/activeWorkout';
 
@@ -46,6 +46,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
   const [exercises, setExercises] = useState<EditableExercise[]>(() => (initial ? fromRoutine(initial) : []));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const { confirm, dialog } = useDialog();
 
   const edit = (fn: (prev: EditableExercise[]) => EditableExercise[]) => {
     setExercises(fn);
@@ -97,6 +98,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      {dialog}
       <Stack.Screen
         options={{
           title: isNew ? 'New routine' : 'Edit routine',

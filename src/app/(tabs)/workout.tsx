@@ -5,7 +5,7 @@ import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { Button, Card, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
 import { colors, spacing } from '@/constants/theme';
 import { useRoutines } from '@/hooks/queries';
-import { confirm } from '@/lib/confirm';
+import { useDialog } from '@/components/Dialog';
 import { routineToPrefill } from '@/lib/prefill';
 import { useActiveWorkout, type Prefill } from '@/store/activeWorkout';
 
@@ -13,6 +13,7 @@ export default function WorkoutTab() {
   const routines = useRoutines();
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
+  const { confirm, dialog } = useDialog();
 
   const begin = async (prefill?: Prefill) => {
     if (active) {
@@ -28,6 +29,7 @@ export default function WorkoutTab() {
 
   return (
     <Screen scroll contentStyle={{ paddingTop: spacing.md, gap: spacing.lg }}>
+      {dialog}
       <ActiveWorkoutBanner />
 
       <View style={{ gap: spacing.sm }}>

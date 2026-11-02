@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import type { ComponentProps, ReactNode } from 'react';
+import { useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -113,7 +113,7 @@ export function Input({ label, style, ...rest }: TextInputProps & { label?: stri
 
 // ---------- Buttons ----------
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerSolid' | 'success';
 
 type ButtonProps = Omit<PressableProps, 'style'> & {
   title: string;
@@ -240,6 +240,7 @@ const buttonVariants: Record<ButtonVariant, { bg: string; text: string; border: 
   secondary: { bg: colors.surfaceAlt, text: colors.text, border: colors.border },
   ghost: { bg: 'transparent', text: colors.accent, border: 'transparent' },
   danger: { bg: 'transparent', text: colors.danger, border: colors.danger },
+  dangerSolid: { bg: colors.danger, text: '#FFFFFF', border: colors.danger },
   success: { bg: colors.success, text: '#06240F', border: colors.success },
 };
 
@@ -286,3 +287,24 @@ const styles = StyleSheet.create({
   avatar: { backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
   empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl, paddingHorizontal: spacing.xl },
 });
+
+// ---------- Password input with show/hide toggle ----------
+
+export function PasswordInput(props: TextInputProps & { label?: string }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <View style={{ gap: spacing.xs }}>
+      <Input {...props} secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} />
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setVisible((v) => !v)}
+        hitSlop={8}
+        style={{ alignSelf: 'flex-start' }}
+      >
+        <Text style={{ color: colors.accent, fontSize: 13, fontWeight: '600' }}>
+          {visible ? 'Hide password' : 'Show password'}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}

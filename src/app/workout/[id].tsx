@@ -5,7 +5,7 @@ import { Avatar, Button, Card, ErrorText, Loading, Row, Screen, Txt } from '@/co
 import { colors, spacing } from '@/constants/theme';
 import { useCopyWorkout, useDeleteWorkout, useWorkout } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
-import { confirm, notify } from '@/lib/confirm';
+import { useDialog } from '@/components/Dialog';
 import { formatDate, formatDuration } from '@/lib/format';
 import { workoutToPrefill } from '@/lib/prefill';
 import { formatVolume, formatWeight } from '@/lib/units';
@@ -19,6 +19,7 @@ export default function WorkoutDetailScreen() {
   const del = useDeleteWorkout();
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
+  const { confirm, notify, dialog } = useDialog();
 
   if (isLoading) return <Loading />;
   if (error || !w) return <Screen><ErrorText>{error?.message ?? 'Workout not found'}</ErrorText></Screen>;
@@ -57,6 +58,7 @@ export default function WorkoutDetailScreen() {
   return (
     <Screen scroll contentStyle={{ paddingVertical: spacing.lg, gap: spacing.lg }}>
       <Stack.Screen options={{ title: w.title }} />
+      {dialog}
       <Pressable onPress={() => (isMine ? router.push('/(tabs)/account') : router.push(`/user/${w.user_id}`))}>
         <Row>
           <Avatar name={w.profile.display_name || w.profile.username} url={w.profile.avatar_url} size={40} />
