@@ -3,21 +3,27 @@ import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { maxContentWidth, radius, spacing } from '@/constants/theme';
-import {
-  EQUIPMENT_LIST,
-  LIBRARY_EXERCISES,
-  MUSCLE_GROUPS,
-  type Equipment,
-  type MuscleGroup,
-} from '@/data/exercises';
+import { EQUIPMENT_LIST, LIBRARY_EXERCISES, type Equipment, type MuscleGroup } from '@/data/exercises';
 import { useExercises } from '@/hooks/queries';
+import { asUnit, type WeightUnit } from '@/lib/units';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { Button, Input, Row, Txt } from './ui';
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onPick: (name: string) => void;
+  /** unit: the weight unit you last used for this exercise (kg if never used). */
+  onPick: (name: string, unit: WeightUnit) => void;
+};
+
+type Category = 'Legs' | 'Arms' | 'Chest' | 'Back' | 'Others';
+const CATEGORIES: Category[] = ['Legs', 'Arms', 'Chest', 'Back', 'Others'];
+const CATEGORY_OF: Record<MuscleGroup, Category> = {
+  Quadriceps: 'Legs', Hamstrings: 'Legs', Glutes: 'Legs', Calves: 'Legs', Adductors: 'Legs', Abductors: 'Legs',
+  Biceps: 'Arms', Triceps: 'Arms', Forearms: 'Arms',
+  Chest: 'Chest',
+  Back: 'Back', Traps: 'Back', 'Lower Back': 'Back',
+  Shoulders: 'Others', Abs: 'Others', 'Full Body': 'Others', Neck: 'Others',
 };
 
 type PickerItem = { key: string; name: string; muscle?: MuscleGroup; equipment?: Equipment; custom: boolean };
@@ -37,7 +43,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
-  const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
+  const [category, setCategory] = useState<Category | null>(null);
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const { data: mine = [] } = useExercises();
 
@@ -52,25 +58,27 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
   const filtered = useMemo(() => {
     const words = q.split(/\s+/).filter(Boolean);
     return allItems.filter((item) => {
-      if (muscle && item.muscle !== muscle) return false;
+      // Custom exercises have no muscle tag, so they live under Others.
+      if (category && (item.muscle ? CATEGORY_OF[item.muscle] : 'Others') !== category) return false;
       if (equipment && item.equipment !== equipment) return false;
       if (words.length === 0) return true;
       const hay = `${item.name} ${item.muscle ?? ''} ${item.equipment ?? ''}`.toLowerCase();
       return words.every((w) => hay.includes(w));
     });
-  }, [allItems, q, muscle, equipment]);
+  }, [allItems, q, category, equipment]);
 
   const exactExists = q.length > 0 && allItems.some((i) => i.name.toLowerCase() === q);
 
   const close = () => {
     setQuery('');
-    setMuscle(null);
+    setCategory(null);
     setEquipment(null);
     onClose();
   };
 
   const pick = (name: string) => {
-    onPick(name);
+    const own = mine.find((e) => e.name.toLowerCase() === name.toLowerCase());
+    onPick(name, asUnit(own?.weight_unit));
     close();
   };
 
@@ -92,10 +100,10 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
           />
 
           <ChipRow
-            label="Muscle"
-            options={MUSCLE_GROUPS}
-            value={muscle}
-            onChange={setMuscle}
+            label="Categories"
+            options={CATEGORIES}
+            value={category}
+            onChange={setCategory}
           />
           <ChipRow
             label="Equipment"

@@ -281,6 +281,10 @@ const useStyles = makeStyles((colors) => ({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   text: { color: colors.text },
   error: { color: colors.danger, fontSize: 14 },
+  passwordBox: { flexDirection: 'row', alignItems: 'center', paddingVertical: 0, paddingRight: spacing.sm },
+  // The outer box draws the field; the text input itself is borderless and fills the remaining width.
+  passwordField: { flex: 1, minWidth: 0, paddingVertical: 12, color: colors.text, fontSize: 16, borderWidth: 0 },
+  passwordToggle: { paddingHorizontal: spacing.xs, paddingVertical: 6 },
   input: {
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
@@ -310,22 +314,35 @@ const useStyles = makeStyles((colors) => ({
 
 // ---------- Password input with show/hide toggle ----------
 
-export function PasswordInput(props: TextInputProps & { label?: string }) {
+export function PasswordInput({ label, style, ...props }: TextInputProps & { label?: string }) {
   const { colors } = useTheme();
+  const styles = useStyles();
   const [visible, setVisible] = useState(false);
   return (
     <View style={{ gap: spacing.xs }}>
-      <Input {...props} secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} />
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => setVisible((v) => !v)}
-        hitSlop={8}
-        style={{ alignSelf: 'flex-start' }}
-      >
-        <Text style={{ color: colors.accent, fontSize: 13, fontWeight: '600' }}>
-          {visible ? 'Hide password' : 'Show password'}
-        </Text>
-      </Pressable>
+      {label ? <Txt variant="label">{label}</Txt> : null}
+      <View style={[styles.input, styles.passwordBox]}>
+        <TextInput
+          placeholderTextColor={colors.faint}
+          selectionColor={colors.accent}
+          {...props}
+          secureTextEntry={!visible}
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[styles.passwordField, style]}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+          onPress={() => setVisible((v) => !v)}
+          hitSlop={8}
+          style={styles.passwordToggle}
+        >
+          <Text style={{ color: colors.accent, fontSize: 13, fontWeight: '600' }}>
+            {visible ? 'Hide password' : 'Show password'}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

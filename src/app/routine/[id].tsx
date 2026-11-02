@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
 import { ExerciseBlock, type EditableExercise } from '@/components/ExerciseBlock';
 import { ExercisePicker } from '@/components/ExercisePicker';
-import { Button, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
+import { Button, EmptyState, ErrorText, Loading, Row, Screen } from '@/components/ui';
 import { spacing } from '@/constants/theme';
 import { useDeleteRoutine, useRoutine, useSaveRoutine } from '@/hooks/queries';
-import { useAuth } from '@/hooks/useAuth';
+import { asUnit } from '@/lib/units';
 import { useDialog } from '@/components/Dialog';
 import type { RoutineDetail } from '@/lib/types';
 import { uid, useActiveWorkout } from '@/store/activeWorkout';
@@ -18,6 +18,7 @@ function fromRoutine(r: RoutineDetail): EditableExercise[] {
     name: re.exercise.name,
     notes: re.notes ?? '',
     restSeconds: re.rest_seconds,
+    unit: asUnit(re.weight_unit),
     sets: re.routine_sets.map((s) => ({ id: s.id, weightKg: s.weight_kg, reps: s.reps })),
   }));
 }
@@ -38,7 +39,6 @@ export default function RoutineEditorScreen() {
 function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; initial: RoutineDetail | undefined }) {
   const { colors } = useTheme();
   const styles = useStyles();
-  const { unit } = useAuth();
   const save = useSaveRoutine();
   const del = useDeleteRoutine();
   const active = useActiveWorkout((s) => s.workout);
@@ -64,6 +64,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
       name: e.name,
       notes: e.notes,
       rest_seconds: e.restSeconds,
+      weight_unit: e.unit,
       sets: e.sets.map((s) => ({ weight_kg: s.weightKg, reps: s.reps })),
     })),
   });
@@ -88,7 +89,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
       title: title.trim() || 'Routine',
       notes,
       routineId: isNew ? null : id,
-      exercises: exercises.map((e) => ({ name: e.name, notes: e.notes, restSeconds: e.restSeconds, sets: e.sets })),
+      exercises: exercises.map((e) => ({ name: e.name, notes: e.notes, restSeconds: e.restSeconds, unit: e.unit, sets: e.sets })),
     });
     router.push('/workout/active');
   };
@@ -137,7 +138,6 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
             key={e.id}
             exercise={e}
             index={i}
-            unit={unit}
             onChangeSet={(setId, patch) =>
               edit((prev) => prev.map((x) => (x.id === e.id ? { ...x, sets: x.sets.map((s) => (s.id === setId ? { ...s, ...patch } : s)) } : x)))
             }
@@ -154,6 +154,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
             onRemove={() => edit((prev) => prev.filter((x) => x.id !== e.id))}
             onChangeNotes={(n) => edit((prev) => prev.map((x) => (x.id === e.id ? { ...x, notes: n } : x)))}
             onChangeRest={(r) => edit((prev) => prev.map((x) => (x.id === e.id ? { ...x, restSeconds: r } : x)))}
+            onChangeUnit={(u) => edit((prev) => prev.map((x) => (x.id === e.id ? { ...x, unit: u } : x)))}
           />
         ))}
 
@@ -168,12 +169,11 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
             <Button variant="danger" title="Delete routine" icon="trash-outline" onPress={onDelete} loading={del.isPending} />
           </View>
         ) : null}
-        <Txt variant="small" style={{ textAlign: 'center' }}>Weights are shown in {unit}. Change this in Settings.</Txt>
       </Screen>
       <ExercisePicker
         visible={pickerOpen}
         onClose={() => setPickerOpen(false)}
-        onPick={(name) => edit((prev) => [...prev, { id: uid(), name, notes: '', restSeconds: 90, sets: [{ id: uid(), weightKg: null, reps: null }] }])}
+        onPick={(name, unit) => edit((prev) => [...prev, { id: uid(), name, notes: '', restSeconds: 90, unit, sets: [{ id: uid(), weightKg: null, reps: null }] }])}
       />
     </KeyboardAvoidingView>
   );

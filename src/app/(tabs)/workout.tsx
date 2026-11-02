@@ -7,6 +7,7 @@ import { spacing } from '@/constants/theme';
 import { useRoutines } from '@/hooks/queries';
 import { useDialog } from '@/components/Dialog';
 import { routineToPrefill } from '@/lib/prefill';
+import { MAX_ROUTINES } from '@/lib/units';
 import { useActiveWorkout, type Prefill } from '@/store/activeWorkout';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 
@@ -17,6 +18,7 @@ export default function WorkoutTab() {
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
   const { confirm, dialog } = useDialog();
+  const atLimit = (routines.data?.length ?? 0) >= MAX_ROUTINES;
 
   const begin = async (prefill?: Prefill) => {
     if (active) {
@@ -42,10 +44,20 @@ export default function WorkoutTab() {
 
       <View style={{ gap: spacing.sm }}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <Txt variant="label">Routines</Txt>
-          <Button small variant="ghost" title="New routine" icon="add" onPress={() => router.push('/routine/new')} />
+          <Txt variant="label">Routines ({routines.data?.length ?? 0}/{MAX_ROUTINES})</Txt>
+          <Button
+            small
+            variant="ghost"
+            title="New routine"
+            icon="add"
+            disabled={atLimit}
+            onPress={() => router.push('/routine/new')}
+          />
         </Row>
 
+        {atLimit ? (
+          <Txt variant="small">You have {MAX_ROUTINES} routines, the maximum. Delete one to save another.</Txt>
+        ) : null}
         {routines.isLoading ? <Loading /> : null}
         {routines.error ? <ErrorText>{routines.error.message}</ErrorText> : null}
         {routines.data?.length === 0 ? (

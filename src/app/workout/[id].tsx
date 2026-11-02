@@ -3,12 +3,12 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Avatar, Button, Card, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
-import { useCopyWorkout, useDeleteWorkout, useWorkout } from '@/hooks/queries';
+import { useCopyWorkout, useDeleteWorkout, useRoutines, useWorkout } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
 import { formatDate, formatDuration } from '@/lib/format';
 import { workoutToPrefill } from '@/lib/prefill';
-import { formatVolume, formatWeight } from '@/lib/units';
+import { asUnit, formatVolume, formatWeight, MAX_ROUTINES } from '@/lib/units';
 import { useActiveWorkout } from '@/store/activeWorkout';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 
@@ -16,9 +16,10 @@ export default function WorkoutDetailScreen() {
   const { colors } = useTheme();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { session, unit } = useAuth();
+  const { session } = useAuth();
   const { data: w, isLoading, error } = useWorkout(id);
   const copy = useCopyWorkout();
+  const routines = useRoutines();
   const del = useDeleteWorkout();
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
@@ -32,6 +33,9 @@ export default function WorkoutDetailScreen() {
     (sum, we) => sum + we.sets.reduce((s2, s) => s2 + (s.completed ? (s.weight_kg ?? 0) * (s.reps ?? 0) : 0), 0),
     0,
   );
+  // Show total volume in the unit used by most exercises in this workout.
+  const lbCount = w.workout_exercises.filter((we) => we.weight_unit === 'lb').length;
+  const volumeUnit = lbCount > w.workout_exercises.length - lbCount ? 'lb' : 'kg';
   const setCount = w.workout_exercises.reduce((n, we) => n + we.sets.filter((s) => s.completed).length, 0);
 
   const onCopy = async () => {
@@ -80,14 +84,25 @@ export default function WorkoutDetailScreen() {
 
       <Row style={{ justifyContent: 'space-between' }}>
         <StatBox label="Duration" value={formatDuration(w.duration_seconds)} />
-        <StatBox label="Volume" value={formatVolume(volume, unit)} />
+        <StatBox label="Volume" value={formatVolume(volume, volumeUnit)} />
         <StatBox label="Sets" value={String(setCount)} />
       </Row>
 
       <Row style={{ gap: spacing.sm }}>
-        <Button title="Save as routine" icon="copy-outline" variant="secondary" onPress={onCopy} loading={copy.isPending} style={{ flex: 1 }} />
+        <Button
+          title="Save as routine"
+          icon="copy-outline"
+          variant="secondary"
+          onPress={onCopy}
+          loading={copy.isPending}
+          disabled={(routines.data?.length ?? 0) >= MAX_ROUTINES}
+          style={{ flex: 1 }}
+        />
         <Button title="Start workout" icon="play" onPress={onStart} style={{ flex: 1 }} />
       </Row>
+      {(routines.data?.length ?? 0) >= MAX_ROUTINES ? (
+        <Txt variant="small">You already have {MAX_ROUTINES} routines. Delete one from the Workout tab to save this one.</Txt>
+      ) : null}
       {copy.error ? <ErrorText>{copy.error.message}</ErrorText> : null}
 
       {w.workout_exercises.map((we, i) => (
@@ -102,7 +117,7 @@ export default function WorkoutDetailScreen() {
           {we.sets.map((s, j) => (
             <Row key={s.id} style={{ paddingVertical: 3 }}>
               <Txt style={[styles.colSet, { color: colors.muted }]}>{j + 1}</Txt>
-              <Txt style={styles.col}>{formatWeight(s.weight_kg, unit)}</Txt>
+              <Txt style={styles.col}>{formatWeight(s.weight_kg, asUnit(we.weight_unit))}</Txt>
               <Txt style={styles.col}>{s.reps ?? '–'}</Txt>
             </Row>
           ))}

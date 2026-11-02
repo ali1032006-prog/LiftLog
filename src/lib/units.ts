@@ -1,5 +1,12 @@
 export type WeightUnit = 'kg' | 'lb';
 
+/** Most routines a user can save (also enforced in the database). */
+export const MAX_ROUTINES = 4;
+
+export function asUnit(u: string | null | undefined): WeightUnit {
+  return u === 'lb' ? 'lb' : 'kg';
+}
+
 const KG_PER_LB = 0.45359237;
 
 export function kgToUnit(kg: number | null | undefined, unit: WeightUnit): number | null {

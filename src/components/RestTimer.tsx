@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import Animated, { Easing, cancelAnimation, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, spacing } from '@/constants/theme';
 import { formatClock } from '@/lib/format';
@@ -18,11 +19,26 @@ export function RestTimer() {
   const insets = useSafeAreaInsets();
   const [now, setNow] = useState(() => Date.now());
   const buzzed = useRef(false);
+  // Fraction of the rest left (1 -> 0). Animated on the UI thread so the bar glides instead of ticking.
+  const progress = useSharedValue(1);
+
+  useEffect(() => {
+    if (!restEndsAt || restTotal <= 0) {
+      cancelAnimation(progress);
+      return;
+    }
+    const remainingMs = Math.max(0, restEndsAt - Date.now());
+    progress.set(Math.min(1, remainingMs / (restTotal * 1000)));
+    progress.set(withTiming(0, { duration: remainingMs, easing: Easing.linear }));
+    return () => cancelAnimation(progress);
+  }, [restEndsAt, restTotal, progress]);
+
+  const barStyle = useAnimatedStyle(() => ({ width: `${progress.get() * 100}%` }));
 
   useEffect(() => {
     if (!restEndsAt) return;
     buzzed.current = false;
-    const id = setInterval(() => setNow(Date.now()), 250);
+    const id = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(id);
   }, [restEndsAt]);
 
@@ -37,12 +53,11 @@ export function RestTimer() {
   }, [remaining, restEndsAt, skipRest]);
 
   if (!restEndsAt) return null;
-  const progress = restTotal > 0 ? Math.min(1, remaining / restTotal) : 0;
 
   return (
     <View style={[styles.wrap, { paddingBottom: insets.bottom + spacing.sm }]}>
       <View style={styles.track}>
-        <View style={[styles.fill, { width: `${progress * 100}%` }]} />
+        <Animated.View style={[styles.fill, barStyle]} />
       </View>
       <Row style={{ justifyContent: 'space-between' }}>
         <Button small variant="secondary" title="-15s" onPress={() => adjustRest(-15)} />
@@ -66,6 +81,6 @@ const useStyles = makeStyles((colors) => ({
     paddingTop: spacing.sm,
     gap: spacing.sm,
   },
-  track: { height: 4, backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, overflow: 'hidden' },
-  fill: { height: 4, backgroundColor: colors.accent },
+  track: { height: 6, backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, overflow: 'hidden' },
+  fill: { height: 6, backgroundColor: colors.accent },
 }));

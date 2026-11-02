@@ -13,7 +13,7 @@ import { makeStyles, useTheme } from '@/hooks/useTheme';
 export function ProfileView({ userId, headerExtra }: { userId: string; headerExtra?: React.ReactNode }) {
   const { colors } = useTheme();
   const styles = useStyles();
-  const { session, unit } = useAuth();
+  const { session } = useAuth();
   const isMe = session?.user.id === userId;
   const profile = useProfile(userId);
   const workouts = useUserWorkouts(userId);
@@ -81,7 +81,7 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
       }
       renderItem={({ item }) => (
         <View style={{ marginBottom: spacing.md }}>
-          <WorkoutCard card={item} unit={unit} showUser={false} onPress={() => router.push(`/workout/${item.workout_id}`)} />
+          <WorkoutCard card={item} showUser={false} onPress={() => router.push(`/workout/${item.workout_id}`)} />
         </View>
       )}
       ListEmptyComponent={

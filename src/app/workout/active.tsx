@@ -8,7 +8,6 @@ import { RestTimer } from '@/components/RestTimer';
 import { Button, EmptyState, ErrorText, Row, Txt } from '@/components/ui';
 import { maxContentWidth, spacing } from '@/constants/theme';
 import { useFinishWorkout } from '@/hooks/queries';
-import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
 import { formatClock } from '@/lib/format';
 import { toFinishPayload, useActiveWorkout } from '@/store/activeWorkout';
@@ -17,7 +16,6 @@ import { makeStyles, useTheme } from '@/hooks/useTheme';
 export default function ActiveWorkoutScreen() {
   const { colors } = useTheme();
   const styles = useStyles();
-  const { unit } = useAuth();
   const s = useActiveWorkout();
   const workout = s.workout;
   const finish = useFinishWorkout();
@@ -107,7 +105,6 @@ export default function ActiveWorkoutScreen() {
               key={e.id}
               exercise={e}
               index={i}
-              unit={unit}
               onToggleSet={(setId) => s.toggleSet(e.id, setId)}
               onChangeSet={(setId, patch) => s.updateSet(e.id, setId, patch)}
               onAddSet={() => s.addSet(e.id)}
@@ -117,6 +114,7 @@ export default function ActiveWorkoutScreen() {
               }}
               onChangeNotes={(notes) => s.updateExercise(e.id, { notes })}
               onChangeRest={(restSeconds) => s.updateExercise(e.id, { restSeconds })}
+              onChangeUnit={(unit) => s.updateExercise(e.id, { unit })}
             />
           ))}
 
@@ -129,7 +127,7 @@ export default function ActiveWorkoutScreen() {
 
       <RestTimer />
       {dialog}
-      <ExercisePicker visible={pickerOpen} onClose={() => setPickerOpen(false)} onPick={s.addExercise} />
+      <ExercisePicker visible={pickerOpen} onClose={() => setPickerOpen(false)} onPick={(name, unit) => s.addExercise(name, unit)} />
     </KeyboardAvoidingView>
   );
 }

@@ -3,14 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/lib/types';
-import type { WeightUnit } from '@/lib/units';
 
 type AuthContextValue = {
   session: Session | null;
   profile: Profile | null;
   /** True until the persisted session has been read once. */
   initializing: boolean;
-  unit: WeightUnit;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -58,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       profile,
       initializing,
-      unit: (profile?.weight_unit === 'lb' ? 'lb' : 'kg') as WeightUnit,
       refreshProfile: () => loadProfile(session?.user.id),
       signOut: async () => {
         await supabase.auth.signOut();

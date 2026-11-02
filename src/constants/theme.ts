@@ -8,6 +8,7 @@ export type Colors = {
   faint: string;
   accent: string;
   accentText: string;
+  accentTint: string;
   success: string;
   successText: string;
   successTint: string;
@@ -26,6 +27,7 @@ export const darkColors: Colors = {
   faint: '#5B6672',
   accent: '#3B82F6',
   accentText: '#FFFFFF',
+  accentTint: 'rgba(59,130,246,0.18)',
   success: '#22C55E',
   successText: '#06240F',
   successTint: 'rgba(34,197,94,0.14)',
@@ -44,6 +46,7 @@ export const lightColors: Colors = {
   faint: '#929DAA',
   accent: '#2563EB',
   accentText: '#FFFFFF',
+  accentTint: 'rgba(37,99,235,0.12)',
   success: '#16A34A',
   successText: '#FFFFFF',
   successTint: 'rgba(22,163,74,0.12)',

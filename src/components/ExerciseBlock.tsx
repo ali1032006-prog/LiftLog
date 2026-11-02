@@ -3,16 +3,16 @@ import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { radius, spacing } from '@/constants/theme';
 import { parseWeightInput, weightInputValue, type WeightUnit } from '@/lib/units';
+import { RestTimePicker } from './RestTimePicker';
 import { Card, IconButton, Row, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 export type EditableSet = { id: string; weightKg: number | null; reps: number | null; completed?: boolean };
-export type EditableExercise = { id: string; name: string; notes: string; restSeconds: number; sets: EditableSet[] };
+export type EditableExercise = { id: string; name: string; notes: string; restSeconds: number; unit: WeightUnit; sets: EditableSet[] };
 
 type Props = {
   exercise: EditableExercise;
   index: number;
-  unit: WeightUnit;
   /** When provided, sets get a completion checkbox (active workout mode). */
   onToggleSet?: (setId: string) => void;
   onChangeSet: (setId: string, patch: Partial<Pick<EditableSet, 'weightKg' | 'reps'>>) => void;
@@ -21,21 +21,15 @@ type Props = {
   onRemove: () => void;
   onChangeNotes: (notes: string) => void;
   onChangeRest: (seconds: number) => void;
+  onChangeUnit: (unit: WeightUnit) => void;
 };
 
-const REST_STEPS = [0, 30, 45, 60, 90, 120, 150, 180, 240, 300];
-
 export function ExerciseBlock({
-  exercise, index, unit, onToggleSet, onChangeSet, onAddSet, onRemoveSet, onRemove, onChangeNotes, onChangeRest,
+  exercise, index, onToggleSet, onChangeSet, onAddSet, onRemoveSet, onRemove, onChangeNotes, onChangeRest, onChangeUnit,
 }: Props) {
   const { colors } = useTheme();
   const styles = useStyles();
-  const cycleRest = (dir: 1 | -1) => {
-    const i = REST_STEPS.findIndex((s) => s >= exercise.restSeconds);
-    const cur = i === -1 ? REST_STEPS.length - 1 : i;
-    const next = Math.min(REST_STEPS.length - 1, Math.max(0, cur + dir));
-    onChangeRest(REST_STEPS[next]!);
-  };
+  const unit = exercise.unit;
 
   return (
     <Card style={{ gap: spacing.md }}>
@@ -56,12 +50,21 @@ export function ExerciseBlock({
         multiline
       />
 
-      <Row style={{ gap: spacing.xs }}>
-        <Ionicons name="timer-outline" size={16} color={colors.muted} />
-        <Txt variant="muted">Rest timer:</Txt>
-        <Pressable onPress={() => cycleRest(-1)} hitSlop={8}><Ionicons name="remove-circle-outline" size={20} color={colors.accent} /></Pressable>
-        <Txt style={{ minWidth: 44, textAlign: 'center' }}>{exercise.restSeconds === 0 ? 'Off' : `${exercise.restSeconds}s`}</Txt>
-        <Pressable onPress={() => cycleRest(1)} hitSlop={8}><Ionicons name="add-circle-outline" size={20} color={colors.accent} /></Pressable>
+      <Row style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        <RestTimePicker value={exercise.restSeconds} onChange={onChangeRest} />
+        <Row style={styles.unitToggle}>
+          {(['kg', 'lb'] as WeightUnit[]).map((u) => (
+            <Pressable
+              key={u}
+              onPress={() => onChangeUnit(u)}
+              style={[styles.unitOption, unit === u && styles.unitOptionActive]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: unit === u }}
+            >
+              <Txt variant="small" style={{ fontWeight: '700', color: unit === u ? colors.accentText : colors.text }}>{u}</Txt>
+            </Pressable>
+          ))}
+        </Row>
       </Row>
 
       <View style={{ gap: spacing.xs }}>
@@ -73,7 +76,7 @@ export function ExerciseBlock({
         </Row>
         {exercise.sets.map((s, i) => (
           <SetRow
-            key={s.id}
+            key={`${s.id}-${unit}`}
             set={s}
             index={i}
             unit={unit}
@@ -174,6 +177,9 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border,
   },
   checkDone: { backgroundColor: colors.success, borderColor: colors.success },
+  unitToggle: { backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, padding: 3, gap: 2 },
+  unitOption: { paddingVertical: 4, paddingHorizontal: 12, borderRadius: radius.pill },
+  unitOptionActive: { backgroundColor: colors.accent },
   addSet: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs,
     paddingVertical: 10, borderRadius: radius.md, backgroundColor: colors.surfaceAlt,

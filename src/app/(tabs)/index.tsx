@@ -12,7 +12,7 @@ import { makeStyles, useTheme } from '@/hooks/useTheme';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const styles = useStyles();
-  const { unit, session } = useAuth();
+  const { session } = useAuth();
   const feed = useFeed();
   const insets = useSafeAreaInsets();
   const items = feed.data?.pages.flat() ?? [];
@@ -31,7 +31,6 @@ export default function HomeScreen() {
         <View style={{ marginBottom: spacing.md }}>
           <WorkoutCard
             card={item}
-            unit={unit}
             onPress={() => router.push(`/workout/${item.workout_id}`)}
             onPressUser={() =>
               item.user_id === session?.user.id ? router.push('/(tabs)/account') : router.push(`/user/${item.user_id}`)

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
+import { PillTabBar } from '@/components/PillTabBar';
 import { IconButton } from '@/components/ui';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -9,6 +10,7 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   return (
     <Tabs
+      tabBar={(props) => <PillTabBar {...props} />}
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg },
         headerShadowVisible: false,

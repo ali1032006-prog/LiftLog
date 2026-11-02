@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { WeightUnit } from '@/lib/units';
 
 export type ActiveSet = {
   id: string;
@@ -14,6 +15,7 @@ export type ActiveExercise = {
   name: string;
   notes: string;
   restSeconds: number;
+  unit: WeightUnit;
   sets: ActiveSet[];
 };
 
@@ -29,7 +31,7 @@ export type Prefill = {
   title?: string;
   notes?: string | null;
   routineId?: string | null;
-  exercises?: { name: string; notes?: string | null; restSeconds?: number; sets?: { weightKg: number | null; reps: number | null }[] }[];
+  exercises?: { name: string; notes?: string | null; restSeconds?: number; unit?: WeightUnit; sets?: { weightKg: number | null; reps: number | null }[] }[];
 };
 
 type State = {
@@ -41,9 +43,9 @@ type State = {
   discard: () => void;
   setTitle: (title: string) => void;
   setNotes: (notes: string) => void;
-  addExercise: (name: string) => void;
+  addExercise: (name: string, unit?: WeightUnit) => void;
   removeExercise: (exerciseId: string) => void;
-  updateExercise: (exerciseId: string, patch: Partial<Pick<ActiveExercise, 'notes' | 'restSeconds' | 'name'>>) => void;
+  updateExercise: (exerciseId: string, patch: Partial<Pick<ActiveExercise, 'notes' | 'restSeconds' | 'name' | 'unit'>>) => void;
   addSet: (exerciseId: string) => void;
   removeSet: (exerciseId: string, setId: string) => void;
   updateSet: (exerciseId: string, setId: string, patch: Partial<Pick<ActiveSet, 'weightKg' | 'reps'>>) => void;
@@ -81,6 +83,7 @@ export const useActiveWorkout = create<State>()(
               name: e.name,
               notes: e.notes ?? '',
               restSeconds: e.restSeconds ?? 90,
+              unit: e.unit ?? 'kg',
               sets: (e.sets && e.sets.length > 0 ? e.sets : [{ weightKg: null, reps: null }]).map((s) => ({
                 id: uid(),
                 weightKg: s.weightKg,
@@ -96,10 +99,10 @@ export const useActiveWorkout = create<State>()(
       setTitle: (title) => mutate(set, get, (w) => ({ ...w, title })),
       setNotes: (notes) => mutate(set, get, (w) => ({ ...w, notes })),
 
-      addExercise: (name) =>
+      addExercise: (name, unit = 'kg') =>
         mutate(set, get, (w) => ({
           ...w,
-          exercises: [...w.exercises, { id: uid(), name: name.trim(), notes: '', restSeconds: 90, sets: [newSet()] }],
+          exercises: [...w.exercises, { id: uid(), name: name.trim(), notes: '', restSeconds: 90, unit, sets: [newSet()] }],
         })),
 
       removeExercise: (exerciseId) =>
@@ -166,6 +169,13 @@ export const useActiveWorkout = create<State>()(
     {
       name: 'liftlog.activeWorkout.v1',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      // v1 workouts had no per-exercise unit
+      migrate: (state) => {
+        const s = state as { workout?: ActiveWorkout | null };
+        if (s.workout) s.workout.exercises = s.workout.exercises.map((e) => ({ ...e, unit: e.unit ?? 'kg' }));
+        return s as never;
+      },
       partialize: (s) => ({ workout: s.workout, restEndsAt: s.restEndsAt, restTotal: s.restTotal }),
     },
   ),
@@ -203,6 +213,7 @@ export function toFinishPayload(w: ActiveWorkout, finishedAt = new Date()) {
         name: e.name.trim(),
         notes: e.notes,
         rest_seconds: e.restSeconds,
+        weight_unit: e.unit ?? 'kg',
         sets: e.sets
           .filter((s) => s.completed)
           .map((s) => ({ weight_kg: s.weightKg, reps: s.reps, completed: true })),

@@ -6,7 +6,6 @@ import { radius, spacing } from '@/constants/theme';
 import { useUpdateProfile } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
-import type { WeightUnit } from '@/lib/units';
 import type { ThemeMode } from '@/store/themePreference';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 
@@ -17,13 +16,12 @@ export default function SettingsScreen() {
   const update = useUpdateProfile(session?.user.id);
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
-  const [unit, setUnit] = useState<WeightUnit>(profile?.weight_unit === 'lb' ? 'lb' : 'kg');
   const [saved, setSaved] = useState(false);
   const { confirm, dialog } = useDialog();
 
   const onSave = async () => {
     try {
-      await update.mutateAsync({ display_name: displayName.trim() || null, bio: bio.trim() || null, weight_unit: unit });
+      await update.mutateAsync({ display_name: displayName.trim() || null, bio: bio.trim() || null });
       await refreshProfile();
       setSaved(true);
       setTimeout(() => router.back(), 400);
@@ -44,18 +42,6 @@ export default function SettingsScreen() {
         <Input label="Username" value={profile?.username ?? ''} editable={false} style={{ opacity: 0.6 }} />
         <Input label="Display name" value={displayName} onChangeText={setDisplayName} placeholder="Your name" />
         <Input label="Bio" value={bio} onChangeText={setBio} placeholder="A line about your training" multiline style={{ minHeight: 72 }} />
-      </View>
-
-      <View style={{ gap: spacing.sm }}>
-        <Txt variant="label">Weight unit</Txt>
-        <Row style={styles.segment}>
-          {(['kg', 'lb'] as WeightUnit[]).map((u) => (
-            <Pressable key={u} onPress={() => setUnit(u)} style={[styles.segmentItem, unit === u && styles.segmentActive]}>
-              <Txt style={{ fontWeight: '700', color: unit === u ? colors.accentText : colors.text }}>{u === 'kg' ? 'Kilograms (kg)' : 'Pounds (lb)'}</Txt>
-            </Pressable>
-          ))}
-        </Row>
-        <Txt variant="small">Weights are stored in kg and converted for display.</Txt>
       </View>
 
       <View style={{ gap: spacing.sm }}>

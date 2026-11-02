@@ -14,7 +14,7 @@ export type Database = {
   public: {
     Tables: {
       exercises: {
-        Row: { created_at: string; id: string; name: string; owner_id: string }
+        Row: { created_at: string; id: string; name: string; owner_id: string; weight_unit: string }
         Insert: { created_at?: string; id?: string; name: string; owner_id: string }
         Update: { created_at?: string; id?: string; name?: string; owner_id?: string }
         Relationships: [
@@ -37,7 +37,7 @@ export type Database = {
         Relationships: []
       }
       routine_exercises: {
-        Row: { exercise_id: string; id: string; notes: string | null; position: number; rest_seconds: number; routine_id: string }
+        Row: { exercise_id: string; id: string; notes: string | null; position: number; rest_seconds: number; routine_id: string; weight_unit: string }
         Insert: { exercise_id: string; id?: string; notes?: string | null; position?: number; rest_seconds?: number; routine_id: string }
         Update: { exercise_id?: string; id?: string; notes?: string | null; position?: number; rest_seconds?: number; routine_id?: string }
         Relationships: [
@@ -72,7 +72,7 @@ export type Database = {
         ]
       }
       workout_exercises: {
-        Row: { exercise_id: string; id: string; notes: string | null; position: number; rest_seconds: number; workout_id: string }
+        Row: { exercise_id: string; id: string; notes: string | null; position: number; rest_seconds: number; workout_id: string; weight_unit: string }
         Insert: { exercise_id: string; id?: string; notes?: string | null; position?: number; rest_seconds?: number; workout_id: string }
         Update: { exercise_id?: string; id?: string; notes?: string | null; position?: number; rest_seconds?: number; workout_id?: string }
         Relationships: [
@@ -106,6 +106,7 @@ export type Database = {
           total_volume_kg: number | null
           user_id: string | null
           username: string | null
+          volume_unit: string | null
           workout_id: string | null
         }
         Relationships: [
@@ -176,6 +177,7 @@ export type WorkoutCardExercise = {
   set_count: number
   best_weight_kg: number | null
   best_reps: number | null
+  weight_unit?: string
 }
 
 export type WorkoutDetail = Tables<"workouts"> & {

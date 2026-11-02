@@ -3,13 +3,12 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { spacing } from '@/constants/theme';
 import { formatDuration, timeAgo } from '@/lib/format';
 import type { WorkoutCard as WorkoutCardType, WorkoutCardExercise } from '@/lib/types';
-import { formatVolume, formatWeight, type WeightUnit } from '@/lib/units';
+import { asUnit, formatVolume, formatWeight } from '@/lib/units';
 import { Avatar, Card, Row, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 type Props = {
   card: WorkoutCardType;
-  unit: WeightUnit;
   showUser?: boolean;
   onPress?: () => void;
   onPressUser?: () => void;
@@ -17,7 +16,7 @@ type Props = {
 
 const MAX_EXERCISES = 4;
 
-export function WorkoutCard({ card, unit, showUser = true, onPress, onPressUser }: Props) {
+export function WorkoutCard({ card, showUser = true, onPress, onPressUser }: Props) {
   const styles = useStyles();
   const exercises = (Array.isArray(card.exercises) ? card.exercises : []) as unknown as WorkoutCardExercise[];
   const extra = exercises.length - MAX_EXERCISES;
@@ -43,7 +42,7 @@ export function WorkoutCard({ card, unit, showUser = true, onPress, onPressUser 
 
         <Row style={{ gap: spacing.lg }}>
           <Stat icon="time-outline" label={formatDuration(card.duration_seconds)} />
-          <Stat icon="barbell-outline" label={formatVolume(card.total_volume_kg, unit)} />
+          <Stat icon="barbell-outline" label={formatVolume(card.total_volume_kg, asUnit(card.volume_unit))} />
           <Stat icon="checkmark-done-outline" label={`${card.set_count ?? 0} sets`} />
         </Row>
 
@@ -56,7 +55,7 @@ export function WorkoutCard({ card, unit, showUser = true, onPress, onPressUser 
                 </Txt>
                 {e.best_weight_kg != null ? (
                   <Txt variant="muted">
-                    {formatWeight(e.best_weight_kg, unit)}{e.best_reps != null ? ` × ${e.best_reps}` : ''}
+                    {formatWeight(e.best_weight_kg, asUnit(e.weight_unit))}{e.best_reps != null ? ` × ${e.best_reps}` : ''}
                   </Txt>
                 ) : null}
               </Row>
