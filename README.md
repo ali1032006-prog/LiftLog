@@ -46,12 +46,17 @@ Weights are stored in kg and converted to the user's unit on display.
 
 ## Deploy (web)
 
+The Vercel project `liftlog` is connected to this GitHub repo: every push to `main` builds and
+deploys to production automatically, and other branches get preview deployments. Vercel runs
+`npm run build:web` using the `EXPO_PUBLIC_SUPABASE_*` environment variables set in the project.
+
+To deploy without pushing (same remote build):
+
 ```bash
-npm run deploy:web      # expo export → dist, then vercel deploy --prod
+npm run deploy:web
 ```
 
-Live: https://liftlog-brown-zeta.vercel.app (Vercel project `liftlog`). The `.env` values are baked into
-the static build at export time, so set them locally before deploying.
+Live: https://liftlog-brown-zeta.vercel.app
 
 ## Social sign-in (Google, Apple, GitHub)
 
