@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { Json, ProfileStats, ProfileSummaryRow, RoutineDetail, Tables, WorkoutCard, WorkoutDetail } from '@/lib/types';
+import { t } from '@/i18n';
 
 const PAGE = 20;
 
@@ -98,7 +99,7 @@ export function useAddWorkoutPhoto(workoutId: string, userId: string | undefined
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ path, position }: { path: string; position: number }) => {
-      if (!userId) throw new Error('Not signed in');
+      if (!userId) throw new Error(t('Not signed in'));
       const { error } = await supabase.from('workout_photos').insert({ workout_id: workoutId, user_id: userId, path, position });
       if (error) {
         await supabase.storage.from('workout-photos').remove([path]);
@@ -223,7 +224,7 @@ export function useProfile(userId: string | undefined) {
     enabled: !!userId,
     queryFn: async () => {
       const rows = unwrap(await supabase.rpc('get_profile', { p_user_id: userId! })) as ProfileStats[];
-      if (!rows[0]) throw new Error('Profile not found');
+      if (!rows[0]) throw new Error(t('Profile not found'));
       return rows[0];
     },
   });
@@ -265,7 +266,7 @@ export function useFollowMutation(myId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, follow }: { userId: string; follow: boolean }) => {
-      if (!myId) throw new Error('Not signed in');
+      if (!myId) throw new Error(t('Not signed in'));
       if (follow) {
         const { error } = await supabase.from('follows').insert({ follower_id: myId, followee_id: userId });
         if (error && error.code !== '23505') throw new Error(error.message);
@@ -290,7 +291,7 @@ export function useUpdateProfile(myId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (patch: Partial<Pick<Tables<'profiles'>, 'display_name' | 'bio' | 'weight_unit' | 'username' | 'avatar_url'>>) => {
-      if (!myId) throw new Error('Not signed in');
+      if (!myId) throw new Error(t('Not signed in'));
       const { error } = await supabase.from('profiles').update(patch).eq('id', myId);
       if (error) throw new Error(error.message);
     },

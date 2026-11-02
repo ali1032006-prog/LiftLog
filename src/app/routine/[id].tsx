@@ -12,6 +12,7 @@ import type { RoutineDetail } from '@/lib/types';
 import { uid } from '@/store/activeWorkout';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { AnimatedItem } from '@/components/motion';
+import { t } from '@/i18n';
 
 function fromRoutine(r: RoutineDetail): EditableExercise[] {
   return r.routine_exercises.map((re) => ({
@@ -57,7 +58,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
 
   const payload = () => ({
     ...(isNew ? {} : { id }),
-    title: title.trim() || 'Routine',
+    title: title.trim() || t('Routine'),
     notes,
     exercises: exercises.map((e) => ({
       name: e.name,
@@ -80,7 +81,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
   };
 
   const onDelete = async () => {
-    if (!(await confirm('Delete routine?', undefined, 'Delete', true))) return;
+    if (!(await confirm(t('Delete routine?'), undefined, t('Delete'), true))) return;
     await del.mutateAsync(id);
     router.back();
   };
@@ -90,32 +91,32 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
       {dialog}
       <Stack.Screen
         options={{
-          title: isNew ? 'New routine' : 'Edit routine',
+          title: isNew ? t('New routine') : t('Edit routine'),
           headerRight: () => (
-            <Button small variant="ghost" title={save.isPending ? 'Saving…' : 'Save'} onPress={onSave} disabled={save.isPending || (!dirty && !isNew)} />
+            <Button small variant="ghost" title={save.isPending ? t('Saving…') : t('Save')} onPress={onSave} disabled={save.isPending || (!dirty && !isNew)} />
           ),
         }}
       />
       <Screen scroll contentStyle={{ paddingVertical: spacing.lg, gap: spacing.md }}>
         <TextInput
           value={title}
-          onChangeText={(t) => { setTitle(t); setDirty(true); }}
+          onChangeText={(v) => { setTitle(v); setDirty(true); }}
           style={styles.title}
-          placeholder="Routine title"
+          placeholder={t('Routine title')}
           placeholderTextColor={colors.faint}
         />
         <TextInput
           value={notes}
-          onChangeText={(t) => { setNotes(t); setDirty(true); }}
+          onChangeText={(v) => { setNotes(v); setDirty(true); }}
           style={styles.notes}
-          placeholder="Notes…"
+          placeholder={t('Notes…')}
           placeholderTextColor={colors.faint}
           multiline
         />
         {save.error ? <ErrorText>{save.error.message}</ErrorText> : null}
 
         {exercises.length === 0 ? (
-          <EmptyState icon="list-outline" title="No exercises" subtitle="Add exercises and the sets you plan to do." />
+          <EmptyState icon="list-outline" title={t('No exercises')} subtitle={t('Add exercises and the sets you plan to do.')} />
         ) : null}
 
         {exercises.map((e, i) => (
@@ -144,11 +145,11 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
           </AnimatedItem>
         ))}
 
-        <Button variant="secondary" title="Add Exercise" icon="add" onPress={() => setPickerOpen(true)} />
+        <Button variant="secondary" title={t('Add Exercise')} icon="add" onPress={() => setPickerOpen(true)} />
 
         {!isNew ? (
           <View style={{ marginTop: spacing.lg }}>
-            <Button variant="danger" title="Delete routine" icon="trash-outline" onPress={onDelete} loading={del.isPending} />
+            <Button variant="danger" title={t('Delete routine')} icon="trash-outline" onPress={onDelete} loading={del.isPending} />
           </View>
         ) : null}
       </Screen>

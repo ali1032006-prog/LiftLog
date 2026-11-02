@@ -10,6 +10,7 @@ import { usePreferences } from '@/store/preferences';
 import { enterFade, exitFade } from './motion';
 import { Button, Row, Txt } from './ui';
 import { makeStyles } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 /** Bottom bar with the rest countdown. Renders nothing when no rest is running. */
 export function RestTimer() {
@@ -50,8 +51,8 @@ export function RestTimer() {
     if (!restEndsAt || remaining > 0 || buzzed.current) return;
     buzzed.current = true;
     if (Platform.OS !== 'web' && usePreferences.getState().haptics) void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const t = setTimeout(skipRest, 1500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(skipRest, 1500);
+    return () => clearTimeout(timer);
   }, [remaining, restEndsAt, skipRest]);
 
   if (!restEndsAt) return null;
@@ -62,13 +63,13 @@ export function RestTimer() {
         <Animated.View style={[styles.fill, barStyle]} />
       </View>
       <Row style={{ justifyContent: 'space-between' }}>
-        <Button small variant="secondary" title="-15s" onPress={() => adjustRest(-15)} />
+        <Button small variant="secondary" title={t('{s}s', { s: -15 })} onPress={() => adjustRest(-15)} />
         <View style={{ alignItems: 'center' }}>
-          <Txt variant="small">{remaining === 0 ? 'Rest done' : 'Rest'}</Txt>
+          <Txt variant="small">{remaining === 0 ? t('Rest done') : t('Rest')}</Txt>
           <Txt variant="h2" style={{ fontVariant: ['tabular-nums'] }}>{formatClock(remaining)}</Txt>
         </View>
-        <Button small variant="secondary" title="+15s" onPress={() => adjustRest(15)} />
-        <Button small variant="ghost" title="Skip" onPress={skipRest} />
+        <Button small variant="secondary" title={t('+{s}s', { s: 15 })} onPress={() => adjustRest(15)} />
+        <Button small variant="ghost" title={t('Skip')} onPress={skipRest} />
       </Row>
     </Animated.View>
   );

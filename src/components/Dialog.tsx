@@ -5,6 +5,7 @@ import { enterFade, enterPop } from './motion';
 import { radius, spacing } from '@/constants/theme';
 import { Button, Txt } from './ui';
 import { makeStyles } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 type DialogOptions = {
   title: string;
@@ -38,14 +39,14 @@ export function useDialog() {
   );
 
   const confirm = useCallback(
-    (title: string, message?: string, confirmLabel = 'OK', destructive = false) =>
-      ask({ title, message, confirmLabel, destructive, cancelLabel: 'Cancel' }),
+    (title: string, message?: string, confirmLabel?: string, destructive = false) =>
+      ask({ title, message, confirmLabel: confirmLabel ?? t('OK'), destructive, cancelLabel: t('Cancel') }),
     [ask],
   );
 
   const notify = useCallback(
     async (title: string, message?: string) => {
-      await ask({ title, message, confirmLabel: 'OK', cancelLabel: null });
+      await ask({ title, message, confirmLabel: t('OK'), cancelLabel: null });
     },
     [ask],
   );
@@ -65,11 +66,11 @@ export function useDialog() {
           {shown?.message ? <Txt variant="muted">{shown.message}</Txt> : null}
           <View style={styles.actions}>
             {shown?.cancelLabel !== null ? (
-              <Button variant="secondary" title={shown?.cancelLabel ?? 'Cancel'} onPress={() => close(false)} style={{ flex: 1 }} />
+              <Button variant="secondary" title={shown?.cancelLabel ?? t('Cancel')} onPress={() => close(false)} style={{ flex: 1 }} />
             ) : null}
             <Button
               variant={shown?.destructive ? 'dangerSolid' : 'primary'}
-              title={shown?.confirmLabel ?? 'OK'}
+              title={shown?.confirmLabel ?? t('OK')}
               onPress={() => close(true)}
               style={{ flex: 1 }}
             />

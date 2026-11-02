@@ -1,3 +1,5 @@
+import { t } from '@/i18n';
+
 export type WeightUnit = 'kg' | 'lb';
 
 /** Most routines a user can save (also enforced in the database). */
@@ -22,10 +24,10 @@ export function unitToKg(value: number | null | undefined, unit: WeightUnit): nu
 /** Round for display: whole numbers stay whole, otherwise 1 decimal. */
 export function formatWeight(kg: number | null | undefined, unit: WeightUnit, withUnit = true): string {
   const v = kgToUnit(kg, unit);
-  if (v == null) return withUnit ? `– ${unit}` : '–';
+  if (v == null) return withUnit ? `– ${t(unit)}` : '–';
   const rounded = Math.round(v * 10) / 10;
   const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
-  return withUnit ? `${text} ${unit}` : text;
+  return withUnit ? `${text} ${t(unit)}` : text;
 }
 
 /** Value to put in an input field (no unit suffix, blank when null). */
@@ -47,5 +49,5 @@ export function parseWeightInput(text: string, unit: WeightUnit): number | null 
 export function formatVolume(kg: number | null | undefined, unit: WeightUnit): string {
   const v = kgToUnit(kg ?? 0, unit) ?? 0;
   const rounded = Math.round(v);
-  return `${rounded.toLocaleString()} ${unit}`;
+  return `${rounded.toLocaleString()} ${t(unit)}`;
 }

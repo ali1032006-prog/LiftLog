@@ -1,6 +1,7 @@
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
+import { t } from '@/i18n';
 import { supabase } from './supabase';
 
 export type PhotoBucket = 'avatars' | 'workout-photos';
@@ -11,7 +12,7 @@ export type PickedImage = { uri: string; width: number };
 export async function pickImage({ square = false }: { square?: boolean } = {}): Promise<PickedImage | null> {
   if (Platform.OS !== 'web') {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) throw new Error('Allow photo access in your phone settings to add pictures.');
+    if (!perm.granted) throw new Error(t('Allow photo access in your phone settings to add pictures.'));
   }
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
@@ -37,7 +38,7 @@ async function toJpegBytes(image: PickedImage, maxWidth: number): Promise<Uint8A
   if (image.width > maxWidth) ctx.resize({ width: maxWidth });
   const rendered = await ctx.renderAsync();
   const saved = await rendered.saveAsync({ compress: 0.75, format: SaveFormat.JPEG, base64: true });
-  if (!saved.base64) throw new Error('Could not read the image.');
+  if (!saved.base64) throw new Error(t('Could not read the image.'));
   return base64ToBytes(saved.base64);
 }
 

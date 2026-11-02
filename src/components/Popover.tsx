@@ -6,6 +6,7 @@ import { radius, spacing } from '@/constants/theme';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { enterMenu, PressableScale } from './motion';
 import { Txt } from './ui';
+import { t } from '@/i18n';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 type Anchor = { x: number; y: number; w: number; h: number };
@@ -44,7 +45,7 @@ function Popover({
   }
   return (
     <Modal transparent visible={!!anchor} animationType="none" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close menu">
+      <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel={t('Close menu')}>
         {anchor ? (
           <Animated.View entering={enterMenu} style={[styles.panel, { top, left, width }]}>
             <Pressable onPress={() => {}}>{children}</Pressable>
@@ -135,7 +136,7 @@ export function SelectMenu<T extends string | number>({
 export type MenuAction = { label: string; icon: IconName; onPress: () => void; danger?: boolean };
 
 /** Three-dots button that opens a small menu of actions with icons. */
-export function ActionMenu({ actions, accessibilityLabel = 'More options' }: { actions: MenuAction[]; accessibilityLabel?: string }) {
+export function ActionMenu({ actions, accessibilityLabel = t('More options') }: { actions: MenuAction[]; accessibilityLabel?: string }) {
   const { colors } = useTheme();
   const styles = useStyles();
   const { ref, anchor, open, close } = useAnchor();

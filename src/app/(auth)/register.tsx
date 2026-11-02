@@ -6,6 +6,7 @@ import { Button, ErrorText, Input, PasswordInput, Screen, Txt } from '@/componen
 import { spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 const USERNAME_RE = /^[A-Za-z0-9_.]{3,30}$/;
 
@@ -27,24 +28,24 @@ export default function RegisterScreen() {
   useEffect(() => {
     if (!usernameValid) return;
     let cancelled = false;
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       const { data } = await supabase.rpc('username_available', { p_username: cleanUsername });
       if (!cancelled) setAvailable(data ?? null);
     }, 350);
     return () => {
       cancelled = true;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [cleanUsername, usernameValid]);
 
   const signUp = async () => {
     setError(null);
     if (!usernameValid) {
-      setError('Username must be 3–30 characters: letters, numbers, dots or underscores.');
+      setError(t('Username must be 3–30 characters: letters, numbers, dots or underscores.'));
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(t('Password must be at least 6 characters.'));
       return;
     }
     setLoading(true);
@@ -55,7 +56,7 @@ export default function RegisterScreen() {
     });
     setLoading(false);
     if (err) {
-      setError(err.message);
+      setError(t(err.message));
       return;
     }
     // When email confirmation is enabled in Supabase there is no session yet.
@@ -66,11 +67,11 @@ export default function RegisterScreen() {
     return (
       <Screen scroll safeTop>
         <View style={styles.form}>
-          <Txt variant="title">Check your email</Txt>
+          <Txt variant="title">{t('Check your email')}</Txt>
           <Txt variant="muted">
-            We sent a confirmation link to {email.trim()}. Open it, then come back and sign in.
+            {t('We sent a confirmation link to {email}. Open it, then come back and sign in.', { email: email.trim() })}
           </Txt>
-          <Button title="Back to sign in" onPress={() => router.replace('/(auth)/login')} />
+          <Button title={t('Back to sign in')} onPress={() => router.replace('/(auth)/login')} />
         </View>
       </Screen>
     );
@@ -78,26 +79,26 @@ export default function RegisterScreen() {
 
   const usernameHint =
     cleanUsername.length === 0 ? null
-    : !usernameValid ? 'Letters, numbers, dots, underscores · 3–30 chars'
-    : available === false ? 'That username is taken'
-    : available === true ? 'Username is available'
-    : 'Checking…';
+    : !usernameValid ? t('Letters, numbers, dots, underscores · 3–30 chars')
+    : available === false ? t('That username is taken')
+    : available === true ? t('Username is available')
+    : t('Checking…');
 
   return (
     <Screen scroll safeTop>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.form}>
         <View style={{ gap: spacing.xs, marginBottom: spacing.lg }}>
-          <Txt variant="title">Create account</Txt>
-          <Txt variant="muted">Pick a username your friends can find you by.</Txt>
+          <Txt variant="title">{t('Create account')}</Txt>
+          <Txt variant="muted">{t('Pick a username your friends can find you by.')}</Txt>
         </View>
         <View style={{ gap: spacing.xs }}>
           <Input
-            label="Username"
+            label={t('Username')}
             value={username}
-            onChangeText={(t) => { setUsername(t); setAvailable(null); }}
+            onChangeText={(text) => { setUsername(text); setAvailable(null); }}
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder="e.g. ali_lifts"
+            placeholder={t('e.g. ali_lifts')}
           />
           {usernameHint ? (
             <Txt variant="small" style={{ color: available === false || (cleanUsername && !usernameValid) ? colors.danger : available ? colors.success : colors.muted }}>
@@ -106,7 +107,7 @@ export default function RegisterScreen() {
           ) : null}
         </View>
         <Input
-          label="Email"
+          label={t('Email')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -115,24 +116,24 @@ export default function RegisterScreen() {
           placeholder="you@example.com"
         />
         <PasswordInput
-          label="Password"
+          label={t('Password')}
           value={password}
           onChangeText={setPassword}
           autoComplete="new-password"
-          placeholder="At least 6 characters"
+          placeholder={t('At least 6 characters')}
           onSubmitEditing={signUp}
         />
         <ErrorText>{error}</ErrorText>
         <Button
-          title="Create account"
+          title={t('Create account')}
           onPress={signUp}
           loading={loading}
           disabled={!email || !password || !usernameValid || available === false}
         />
         <SocialSignIn />
         <View style={styles.footer}>
-          <Txt variant="muted">Already have an account? </Txt>
-          <Link href="/(auth)/login" style={{ color: colors.accent, fontWeight: '700' }}>Sign in</Link>
+          <Txt variant="muted">{t('Already have an account?')} </Txt>
+          <Link href="/(auth)/login" style={{ color: colors.accent, fontWeight: '700' }}>{t('Sign in')}</Link>
         </View>
       </KeyboardAvoidingView>
     </Screen>

@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { maxContentWidth, radius, spacing, type Colors } from '@/constants/theme';
 import { PressableScale } from './motion';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 // ---------- Layout ----------
 
@@ -334,7 +335,7 @@ export function PasswordInput({ label, style, ...props }: TextInputProps & { lab
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+          accessibilityLabel={visible ? t('Hide password') : t('Show password')}
           onPress={() => setVisible((v) => !v)}
           hitSlop={8}
           style={styles.passwordToggle}

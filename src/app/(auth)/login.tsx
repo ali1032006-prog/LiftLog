@@ -6,6 +6,7 @@ import { Button, ErrorText, Input, PasswordInput, Screen, Txt } from '@/componen
 import { spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 export default function LoginScreen() {
   const { colors } = useTheme();
@@ -21,7 +22,7 @@ export default function LoginScreen() {
     const id = identifier.trim();
     const err = id.includes('@') ? await signInWithEmail(id, password) : await signInWithUsername(id, password);
     setLoading(false);
-    if (err) setError(err);
+    if (err) setError(t(err));
   };
 
   return (
@@ -29,20 +30,20 @@ export default function LoginScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.form}>
         <View style={{ gap: spacing.xs, marginBottom: spacing.lg }}>
           <Txt variant="title">LiftLog</Txt>
-          <Txt variant="muted">Track your lifts. Follow your friends.</Txt>
+          <Txt variant="muted">{t('Track your lifts. Follow your friends.')}</Txt>
         </View>
         <Input
-          label="Username or email"
+          label={t('Username or email')}
           value={identifier}
           onChangeText={setIdentifier}
           autoCapitalize="none"
           autoCorrect={false}
           autoComplete="username"
           textContentType="username"
-          placeholder="ali_lifts or you@example.com"
+          placeholder={t('ali_lifts or you@example.com')}
         />
         <PasswordInput
-          label="Password"
+          label={t('Password')}
           value={password}
           onChangeText={setPassword}
           autoComplete="password"
@@ -51,11 +52,11 @@ export default function LoginScreen() {
           onSubmitEditing={signIn}
         />
         <ErrorText>{error}</ErrorText>
-        <Button title="Sign in" onPress={signIn} loading={loading} disabled={!identifier.trim() || !password} />
+        <Button title={t('Sign in')} onPress={signIn} loading={loading} disabled={!identifier.trim() || !password} />
         <SocialSignIn />
         <View style={styles.footer}>
-          <Txt variant="muted">New here? </Txt>
-          <Link href="/(auth)/register" style={{ color: colors.accent, fontWeight: '700' }}>Create an account</Link>
+          <Txt variant="muted">{t('New here?')} </Txt>
+          <Link href="/(auth)/register" style={{ color: colors.accent, fontWeight: '700' }}>{t('Create an account')}</Link>
         </View>
       </KeyboardAvoidingView>
     </Screen>

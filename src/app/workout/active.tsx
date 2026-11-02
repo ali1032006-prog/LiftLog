@@ -19,6 +19,7 @@ import { AnimatedItem } from '@/components/motion';
 import { PhotoStrip } from '@/components/PhotoStrip';
 import { useAuth } from '@/hooks/useAuth';
 import { pickImage, uploadPhoto } from '@/lib/photos';
+import { t, tn } from '@/i18n';
 
 export default function ActiveWorkoutScreen() {
   const { colors } = useTheme();
@@ -72,23 +73,23 @@ export default function ActiveWorkoutScreen() {
       const path = await uploadPhoto('workout-photos', session.user.id, image, 1600);
       s.addPhoto(path);
     } catch (e) {
-      await notify('Could not add photo', e instanceof Error ? e.message : undefined);
+      await notify(t('Could not add photo'), e instanceof Error ? e.message : undefined);
     } finally {
       setUploading(false);
     }
   };
 
   const onDiscard = async () => {
-    const ok = await confirm('Discard workout?', 'All sets from this workout will be lost.', 'Discard', true);
+    const ok = await confirm(t('Discard workout?'), t('All sets from this workout will be lost.'), t('Discard'), true);
     if (ok) s.discard();
   };
 
   const onFinish = async () => {
     if (completedSets === 0) {
-      notify('No completed sets', 'Tick at least one set before finishing, or discard the workout.');
+      notify(t('No completed sets'), t('Tick at least one set before finishing, or discard the workout.'));
       return;
     }
-    const ok = await confirm('Finish workout?', `${completedSets} completed set${completedSets === 1 ? '' : 's'} will be saved.`, 'Finish');
+    const ok = await confirm(t('Finish workout?'), tn(completedSets, '{count} completed set will be saved.', '{count} completed sets will be saved.'), t('Finish'));
     if (!ok) return;
     try {
       const id = await finish.mutateAsync(toFinishPayload(workout));
@@ -104,12 +105,12 @@ export default function ActiveWorkoutScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.root}>
       <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.topInner}>
-          <Button small variant="danger" title="Discard" onPress={onDiscard} />
+          <Button small variant="danger" title={t('Discard')} onPress={onDiscard} />
           <View style={{ alignItems: 'center' }}>
-            <Txt variant="small">Duration</Txt>
+            <Txt variant="small">{t('Duration')}</Txt>
             <Txt variant="h3" style={{ fontVariant: ['tabular-nums'] }}>{formatClock(elapsed)}</Txt>
           </View>
-          <Button small variant="success" title="Finish" onPress={onFinish} loading={finish.isPending} />
+          <Button small variant="success" title={t('Finish')} onPress={onFinish} loading={finish.isPending} />
         </View>
       </View>
 
@@ -119,14 +120,14 @@ export default function ActiveWorkoutScreen() {
             value={workout.title}
             onChangeText={s.setTitle}
             style={styles.title}
-            placeholder="Workout title"
+            placeholder={t('Workout title')}
             placeholderTextColor={colors.faint}
           />
           <TextInput
             value={workout.notes}
             onChangeText={s.setNotes}
             style={styles.notes}
-            placeholder="Workout notes…"
+            placeholder={t('Workout notes…')}
             placeholderTextColor={colors.faint}
             multiline
           />
@@ -134,7 +135,7 @@ export default function ActiveWorkoutScreen() {
           {finish.error ? <ErrorText>{finish.error.message}</ErrorText> : null}
 
           {workout.exercises.length === 0 ? (
-            <EmptyState icon="barbell-outline" title="Get started" subtitle="Add an exercise to start logging sets." />
+            <EmptyState icon="barbell-outline" title={t('Get started')} subtitle={t('Add an exercise to start logging sets.')} />
           ) : null}
 
           {workout.exercises.map((e, i) => (
@@ -150,7 +151,7 @@ export default function ActiveWorkoutScreen() {
               onAddSet={() => s.addSet(e.id)}
               onRemoveSet={(setId) => s.removeSet(e.id, setId)}
               onRemove={async () => {
-                if (await confirm(`Remove ${e.name}?`, undefined, 'Remove', true)) s.removeExercise(e.id);
+                if (await confirm(t('Remove {name}?', { name: e.name }), undefined, t('Remove'), true)) s.removeExercise(e.id);
               }}
               onChangeNotes={(notes) => s.updateExercise(e.id, { notes })}
               onChangeRest={(restSeconds) => s.updateExercise(e.id, { restSeconds })}
@@ -159,9 +160,9 @@ export default function ActiveWorkoutScreen() {
             </AnimatedItem>
           ))}
 
-          <Button variant="secondary" title="Add Exercise" icon="add" onPress={() => setPickerOpen(true)} />
+          <Button variant="secondary" title={t('Add Exercise')} icon="add" onPress={() => setPickerOpen(true)} />
           <Row style={{ justifyContent: 'center' }}>
-            <Txt variant="small">{completedSets} completed set{completedSets === 1 ? '' : 's'}</Txt>
+            <Txt variant="small">{tn(completedSets, '{count} completed set', '{count} completed sets')}</Txt>
           </Row>
         </View>
       </ScrollView>

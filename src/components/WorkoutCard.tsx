@@ -9,6 +9,7 @@ import type { WorkoutCard as WorkoutCardType, WorkoutCardExercise } from '@/lib/
 import { asUnit, formatVolume, formatWeight } from '@/lib/units';
 import { Avatar, Card, Row, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { tn } from '@/i18n';
 
 type Props = {
   card: WorkoutCardType;
@@ -59,7 +60,7 @@ export function WorkoutCard({ card, showUser = true, onPress, onPressUser }: Pro
         <Row style={{ gap: spacing.lg }}>
           <Stat icon="time-outline" label={formatDuration(card.duration_seconds)} />
           <Stat icon="barbell-outline" label={formatVolume(card.total_volume_kg, asUnit(card.volume_unit))} />
-          <Stat icon="checkmark-done-outline" label={`${card.set_count ?? 0} sets`} />
+          <Stat icon="checkmark-done-outline" label={tn(card.set_count ?? 0, '{count} set', '{count} sets')} />
         </Row>
 
         {exercises.length > 0 ? (
@@ -76,7 +77,7 @@ export function WorkoutCard({ card, showUser = true, onPress, onPressUser }: Pro
                 ) : null}
               </Row>
             ))}
-            {extra > 0 ? <Txt variant="small">+{extra} more exercise{extra === 1 ? '' : 's'}</Txt> : null}
+            {extra > 0 ? <Txt variant="small">{tn(extra, '+{count} more exercise', '+{count} more exercises')}</Txt> : null}
           </View>
         ) : null}
       </Card>

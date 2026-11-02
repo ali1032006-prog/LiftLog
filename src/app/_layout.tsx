@@ -5,6 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
+import { t, useLanguage } from '@/i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 15_000, retry: 1 } },
@@ -24,6 +25,8 @@ export default function RootLayout() {
 
 function ThemedApp() {
   const { colors, scheme } = useTheme();
+  // Re-mount the whole UI when the language changes so every string re-renders in the new language.
+  const lang = useLanguage((s) => s.lang);
   const base = scheme === 'light' ? DefaultTheme : DarkTheme;
   const navTheme = {
     ...base,
@@ -32,7 +35,7 @@ function ThemedApp() {
   return (
     <ThemeProvider value={navTheme}>
       <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />
-      <RootNavigator />
+      <RootNavigator key={lang} />
     </ThemeProvider>
   );
 }
@@ -64,17 +67,17 @@ function RootNavigator() {
       <Stack.Protected guard={!!session}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="workout/active" options={{ headerShown: false, presentation: 'fullScreenModal', gestureEnabled: false }} />
-        <Stack.Screen name="workout/[id]" options={{ title: 'Workout' }} />
-        <Stack.Screen name="routine/[id]" options={{ title: 'Routine' }} />
+        <Stack.Screen name="workout/[id]" options={{ title: t('Workout') }} />
+        <Stack.Screen name="routine/[id]" options={{ title: t('Routine') }} />
         <Stack.Screen name="user/[id]/index" options={{ title: '' }} />
-        <Stack.Screen name="user/[id]/followers" options={{ title: 'Followers' }} />
-        <Stack.Screen name="user/[id]/following" options={{ title: 'Following' }} />
-        <Stack.Screen name="search" options={{ title: 'Find people' }} />
-        <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
-        <Stack.Screen name="settings/account" options={{ title: 'Account' }} />
-        <Stack.Screen name="settings/workout" options={{ title: 'Workout' }} />
-        <Stack.Screen name="settings/about" options={{ title: 'About' }} />
-        <Stack.Screen name="edit-profile" options={{ title: 'Edit profile' }} />
+        <Stack.Screen name="user/[id]/followers" options={{ title: t('Followers') }} />
+        <Stack.Screen name="user/[id]/following" options={{ title: t('Following') }} />
+        <Stack.Screen name="search" options={{ title: t('Find people') }} />
+        <Stack.Screen name="settings/index" options={{ title: t('Settings') }} />
+        <Stack.Screen name="settings/account" options={{ title: t('Account') }} />
+        <Stack.Screen name="settings/workout" options={{ title: t('Workout') }} />
+        <Stack.Screen name="settings/about" options={{ title: t('About') }} />
+        <Stack.Screen name="edit-profile" options={{ title: t('Edit profile') }} />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />

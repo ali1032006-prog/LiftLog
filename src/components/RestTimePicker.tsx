@@ -1,4 +1,5 @@
 import { SelectMenu } from './Popover';
+import { t } from '@/i18n';
 
 /** Off, then 5-second steps up to 2:00, then 15-second steps up to 5:00. */
 export const REST_OPTIONS: number[] = [
@@ -8,25 +9,23 @@ export const REST_OPTIONS: number[] = [
 ];
 
 export function formatRest(seconds: number): string {
-  if (seconds <= 0) return 'Off';
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds <= 0) return t('Off');
+  if (seconds < 60) return t('{s}s', { s: seconds });
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-const OPTIONS = REST_OPTIONS.map((s) => ({ value: s, label: formatRest(s) }));
-
 /** Small dropdown anchored to its trigger for picking an exercise's rest time. */
 export function RestTimePicker({ value, onChange }: { value: number; onChange: (seconds: number) => void }) {
   return (
     <SelectMenu
-      options={OPTIONS}
+      options={REST_OPTIONS.map((s) => ({ value: s, label: formatRest(s) }))}
       value={value}
       onChange={onChange}
       icon="timer-outline"
-      prefix="Rest: "
-      accessibilityLabel={`Rest time ${formatRest(value)}`}
+      prefix={t('Rest: ')}
+      accessibilityLabel={t('Rest time {time}', { time: formatRest(value) })}
     />
   );
 }

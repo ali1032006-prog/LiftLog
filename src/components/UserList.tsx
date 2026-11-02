@@ -9,6 +9,7 @@ import type { ProfileSummaryRow } from '@/lib/types';
 import { UserRow } from './UserRow';
 import { EmptyState, ErrorText, Loading } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 type Props = {
   users: ProfileSummaryRow[] | undefined;
@@ -48,7 +49,7 @@ export function UserList({ users, loading, error, emptyTitle, emptySubtitle, hea
         />
       )}
       ListEmptyComponent={
-        loading ? <Loading /> : error ? <ErrorText>{error.message}</ErrorText> : <EmptyState icon="people-outline" title={emptyTitle} subtitle={emptySubtitle} />
+        loading ? <Loading /> : error ? <ErrorText>{t(error.message)}</ErrorText> : <EmptyState icon="people-outline" title={emptyTitle} subtitle={emptySubtitle} />
       }
     />
   );

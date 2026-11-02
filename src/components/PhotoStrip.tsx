@@ -6,6 +6,7 @@ import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { photoUrl } from '@/lib/photos';
 import { PressableScale } from './motion';
 import { Txt } from './ui';
+import { t } from '@/i18n';
 
 type Props = {
   /** Paths inside the workout-photos bucket. */
@@ -27,7 +28,7 @@ export function PhotoStrip({ paths, size = 96, onAdd, onRemove, uploading }: Pro
         <View key={p} style={{ width: size, height: size }}>
           <Image source={{ uri: photoUrl('workout-photos', p) }} style={[styles.photo, { width: size, height: size }]} contentFit="cover" transition={150} />
           {onRemove ? (
-            <PressableScale onPress={() => onRemove(p)} style={styles.remove} accessibilityRole="button" accessibilityLabel="Remove photo" hitSlop={6}>
+            <PressableScale onPress={() => onRemove(p)} style={styles.remove} accessibilityRole="button" accessibilityLabel={t('Remove photo')} hitSlop={6}>
               <Ionicons name="close" size={14} color="#FFFFFF" />
             </PressableScale>
           ) : null}
@@ -39,9 +40,9 @@ export function PhotoStrip({ paths, size = 96, onAdd, onRemove, uploading }: Pro
         </View>
       ) : null}
       {onAdd && !uploading ? (
-        <PressableScale onPress={onAdd} style={[styles.tile, { width: size, height: size }]} accessibilityRole="button" accessibilityLabel="Add photo">
+        <PressableScale onPress={onAdd} style={[styles.tile, { width: size, height: size }]} accessibilityRole="button" accessibilityLabel={t('Add photo')}>
           <Ionicons name="camera-outline" size={24} color={colors.accent} />
-          <Txt variant="small" style={{ color: colors.accent, fontWeight: '600' }}>Add photo</Txt>
+          <Txt variant="small" style={{ color: colors.accent, fontWeight: '600' }}>{t('Add photo')}</Txt>
         </PressableScale>
       ) : null}
     </ScrollView>

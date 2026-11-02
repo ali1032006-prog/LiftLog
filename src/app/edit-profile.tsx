@@ -8,6 +8,7 @@ import { useUpdateProfile } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 const USERNAME_RE = /^[A-Za-z0-9_.]{3,30}$/;
 
@@ -39,7 +40,7 @@ export default function EditProfileScreen() {
       const path = await uploadPhoto('avatars', session.user.id, image, 512);
       await setAvatar(photoUrl('avatars', path));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not update your photo.');
+      setError(e instanceof Error ? e.message : t('Could not update your photo.'));
     } finally {
       setPhotoBusy(false);
     }
@@ -51,7 +52,7 @@ export default function EditProfileScreen() {
     try {
       await setAvatar(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not remove your photo.');
+      setError(e instanceof Error ? e.message : t('Could not remove your photo.'));
     } finally {
       setPhotoBusy(false);
     }
@@ -64,20 +65,20 @@ export default function EditProfileScreen() {
   useEffect(() => {
     if (!changed || !valid) return;
     let cancelled = false;
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       const { data } = await supabase.rpc('username_available', { p_username: clean });
       if (!cancelled) setAvailable(data ?? null);
     }, 350);
     return () => {
       cancelled = true;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [clean, changed, valid]);
 
   const onSave = async () => {
     setError(null);
     if (!valid) {
-      setError('Username must be 3 to 30 characters: letters, numbers, dots or underscores.');
+      setError(t('Username must be 3 to 30 characters: letters, numbers, dots or underscores.'));
       return;
     }
     try {
@@ -90,27 +91,27 @@ export default function EditProfileScreen() {
       router.back();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      setError(msg.includes('profiles_username_lower_idx') ? 'That username is taken.' : msg);
+      setError(msg.includes('profiles_username_lower_idx') ? t('That username is taken.') : msg);
     }
   };
 
-  const hint = !changed ? null : !valid ? 'Letters, numbers, dots, underscores · 3 to 30 characters' : available === false ? 'That username is taken' : available ? 'Username is available' : 'Checking…';
+  const hint = !changed ? null : !valid ? t('Letters, numbers, dots, underscores · 3 to 30 characters') : available === false ? t('That username is taken') : available ? t('Username is available') : t('Checking…');
 
   return (
     <Screen scroll contentStyle={{ paddingVertical: spacing.lg, gap: spacing.lg }}>
       <View style={{ alignItems: 'center', gap: spacing.md }}>
         <Avatar name={profile?.display_name || profile?.username} url={profile?.avatar_url} size={96} />
         <Row style={{ gap: spacing.sm }}>
-          <Button small variant="secondary" icon="camera-outline" title={profile?.avatar_url ? 'Change photo' : 'Add photo'} onPress={onChangePhoto} loading={photoBusy} />
-          {profile?.avatar_url ? <Button small variant="ghost" title="Remove photo" onPress={onRemovePhoto} disabled={photoBusy} /> : null}
+          <Button small variant="secondary" icon="camera-outline" title={profile?.avatar_url ? t('Change photo') : t('Add photo')} onPress={onChangePhoto} loading={photoBusy} />
+          {profile?.avatar_url ? <Button small variant="ghost" title={t('Remove photo')} onPress={onRemovePhoto} disabled={photoBusy} /> : null}
         </Row>
       </View>
       <View style={{ gap: spacing.xs }}>
         <Input
-          label="Username"
+          label={t('Username')}
           value={username}
-          onChangeText={(t) => {
-            setUsername(t);
+          onChangeText={(text) => {
+            setUsername(text);
             setAvailable(null);
           }}
           autoCapitalize="none"
@@ -120,10 +121,10 @@ export default function EditProfileScreen() {
           <Txt variant="small" style={{ color: available === false || !valid ? colors.danger : available ? colors.success : colors.muted }}>{hint}</Txt>
         ) : null}
       </View>
-      <Input label="Display name" value={displayName} onChangeText={setDisplayName} placeholder="Your name" />
-      <Input label="Bio" value={bio} onChangeText={setBio} placeholder="A line about your training" multiline style={{ minHeight: 88 }} />
+      <Input label={t('Display name')} value={displayName} onChangeText={setDisplayName} placeholder={t('Your name')} />
+      <Input label={t('Bio')} value={bio} onChangeText={setBio} placeholder={t('A line about your training')} multiline style={{ minHeight: 88 }} />
       <ErrorText>{error}</ErrorText>
-      <Button title="Save" onPress={onSave} loading={update.isPending} disabled={changed && available === false} />
+      <Button title={t('Save')} onPress={onSave} loading={update.isPending} disabled={changed && available === false} />
     </Screen>
   );
 }

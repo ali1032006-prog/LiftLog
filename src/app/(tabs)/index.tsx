@@ -9,6 +9,7 @@ import { useFeed } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { AnimatedItem } from '@/components/motion';
+import { t } from '@/i18n';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -43,16 +44,16 @@ export default function HomeScreen() {
         feed.isLoading ? (
           <Loading />
         ) : feed.error ? (
-          <View style={{ padding: spacing.lg }}><ErrorText>{feed.error.message}</ErrorText></View>
+          <View style={{ padding: spacing.lg }}><ErrorText>{t(feed.error.message)}</ErrorText></View>
         ) : (
           <EmptyState
             icon="people-outline"
-            title="Your feed is empty"
-            subtitle="Log a workout or follow people to see their training here."
+            title={t('Your feed is empty')}
+            subtitle={t('Log a workout or follow people to see their training here.')}
           >
             <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
-              <Button small title="Find people" icon="search" onPress={() => router.push('/search')} />
-              <Button small variant="secondary" title="Start workout" onPress={() => router.push('/(tabs)/workout')} />
+              <Button small title={t('Find people')} icon="search" onPress={() => router.push('/search')} />
+              <Button small variant="secondary" title={t('Start workout')} onPress={() => router.push('/(tabs)/workout')} />
             </View>
           </EmptyState>
         )

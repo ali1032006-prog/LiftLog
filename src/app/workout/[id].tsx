@@ -5,6 +5,7 @@ import { Avatar, Button, Card, ErrorText, Loading, Row, Screen, Txt } from '@/co
 import { spacing } from '@/constants/theme';
 import { useAddWorkoutPhoto, useCopyWorkout, useDeleteWorkout, useRemoveWorkoutPhoto, useRoutines, useWorkout } from '@/hooks/queries';
 import { PhotoStrip } from '@/components/PhotoStrip';
+import { flipInRTL } from '@/components/motion';
 import { pickImage, uploadPhoto } from '@/lib/photos';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +15,7 @@ import { workoutToPrefill } from '@/lib/prefill';
 import { asUnit, formatVolume, formatWeight, MAX_ROUTINES } from '@/lib/units';
 import { useActiveWorkout } from '@/store/activeWorkout';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 export default function WorkoutDetailScreen() {
   const { colors } = useTheme();
@@ -32,7 +34,7 @@ export default function WorkoutDetailScreen() {
   const { confirm, notify, dialog } = useDialog();
 
   if (isLoading) return <Loading />;
-  if (error || !w) return <Screen><ErrorText>{error?.message ?? 'Workout not found'}</ErrorText></Screen>;
+  if (error || !w) return <Screen><ErrorText>{error?.message ?? t('Workout not found')}</ErrorText></Screen>;
 
   const isMine = w.user_id === session?.user.id;
   const volume = w.workout_exercises.reduce(
@@ -47,7 +49,7 @@ export default function WorkoutDetailScreen() {
   const onCopy = async () => {
     try {
       await copy.mutateAsync(w.id);
-      notify('Saved as routine', 'Find it in the Workout tab under Routines.');
+      notify(t('Saved as routine'), t('Find it in the Workout tab under Routines.'));
     } catch {
       /* shown below */
     }
@@ -55,7 +57,7 @@ export default function WorkoutDetailScreen() {
 
   const onStart = async () => {
     if (active) {
-      const ok = await confirm('Discard current workout?', 'You already have a workout in progress.', 'Discard', true);
+      const ok = await confirm(t('Discard current workout?'), t('You already have a workout in progress.'), t('Discard'), true);
       if (!ok) return;
     }
     start(workoutToPrefill(w));
@@ -71,7 +73,7 @@ export default function WorkoutDetailScreen() {
       const path = await uploadPhoto('workout-photos', session.user.id, image, 1600);
       await addPhoto.mutateAsync({ path, position: w.workout_photos.length + 1 });
     } catch (e) {
-      await notify('Could not add photo', e instanceof Error ? e.message : undefined);
+      await notify(t('Could not add photo'), e instanceof Error ? e.message : undefined);
     } finally {
       setUploading(false);
     }
@@ -80,11 +82,11 @@ export default function WorkoutDetailScreen() {
   const onRemovePhoto = async (path: string) => {
     const photo = w.workout_photos.find((p) => p.path === path);
     if (!photo) return;
-    if (await confirm('Remove this photo?', undefined, 'Remove', true)) removePhoto.mutate({ id: photo.id, path });
+    if (await confirm(t('Remove this photo?'), undefined, t('Remove'), true)) removePhoto.mutate({ id: photo.id, path });
   };
 
   const onDelete = async () => {
-    if (!(await confirm('Delete workout?', 'This cannot be undone.', 'Delete', true))) return;
+    if (!(await confirm(t('Delete workout?'), t('This cannot be undone.'), t('Delete'), true))) return;
     await del.mutateAsync(w.id);
     router.back();
   };
@@ -100,7 +102,7 @@ export default function WorkoutDetailScreen() {
             <Txt variant="h3">{w.profile.display_name || w.profile.username}</Txt>
             <Txt variant="small">@{w.profile.username} · {formatDate(w.started_at)}</Txt>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} style={flipInRTL()} />
         </Row>
       </Pressable>
 
@@ -120,14 +122,14 @@ export default function WorkoutDetailScreen() {
       </View>
 
       <Row style={{ justifyContent: 'space-between' }}>
-        <StatBox label="Duration" value={formatDuration(w.duration_seconds)} />
-        <StatBox label="Volume" value={formatVolume(volume, volumeUnit)} />
-        <StatBox label="Sets" value={String(setCount)} />
+        <StatBox label={t('Duration')} value={formatDuration(w.duration_seconds)} />
+        <StatBox label={t('Volume')} value={formatVolume(volume, volumeUnit)} />
+        <StatBox label={t('Sets')} value={String(setCount)} />
       </Row>
 
       <Row style={{ gap: spacing.sm }}>
         <Button
-          title="Save as routine"
+          title={t('Save as routine')}
           icon="copy-outline"
           variant="secondary"
           onPress={onCopy}
@@ -135,10 +137,10 @@ export default function WorkoutDetailScreen() {
           disabled={(routines.data?.length ?? 0) >= MAX_ROUTINES}
           style={{ flex: 1 }}
         />
-        <Button title="Start workout" icon="play" onPress={onStart} style={{ flex: 1 }} />
+        <Button title={t('Start workout')} icon="play" onPress={onStart} style={{ flex: 1 }} />
       </Row>
       {(routines.data?.length ?? 0) >= MAX_ROUTINES ? (
-        <Txt variant="small">You already have {MAX_ROUTINES} routines. Delete one from the Workout tab to save this one.</Txt>
+        <Txt variant="small">{t('You already have {max} routines. Delete one from the Workout tab to save this one.', { max: MAX_ROUTINES })}</Txt>
       ) : null}
       {copy.error ? <ErrorText>{copy.error.message}</ErrorText> : null}
 
@@ -147,9 +149,9 @@ export default function WorkoutDetailScreen() {
           <Txt variant="h3">{i + 1}. {we.exercise.name}</Txt>
           {we.notes ? <Txt variant="muted">{we.notes}</Txt> : null}
           <Row style={styles.setHeader}>
-            <Txt variant="label" style={styles.colSet}>Set</Txt>
-            <Txt variant="label" style={styles.col}>Weight</Txt>
-            <Txt variant="label" style={styles.col}>Reps</Txt>
+            <Txt variant="label" style={styles.colSet}>{t('Set')}</Txt>
+            <Txt variant="label" style={styles.col}>{t('Weight')}</Txt>
+            <Txt variant="label" style={styles.col}>{t('Reps')}</Txt>
           </Row>
           {we.sets.map((s, j) => (
             <Row key={s.id} style={{ paddingVertical: 3 }}>
@@ -162,7 +164,7 @@ export default function WorkoutDetailScreen() {
       ))}
 
       {isMine ? (
-        <Button variant="danger" title="Delete workout" icon="trash-outline" onPress={onDelete} loading={del.isPending} />
+        <Button variant="danger" title={t('Delete workout')} icon="trash-outline" onPress={onDelete} loading={del.isPending} />
       ) : null}
       {del.error ? <ErrorText>{del.error.message}</ErrorText> : null}
     </Screen>

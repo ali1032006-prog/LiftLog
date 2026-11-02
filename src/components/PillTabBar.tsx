@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { animateTo } from './motion';
+import { useLanguage } from '@/i18n';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { maxContentWidth, radius, spacing } from '@/constants/theme';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
@@ -19,10 +20,13 @@ export function PillTabBar({ state, descriptors, emitter, navigateToTab }: Botto
   const tabWidth = width / state.routes.length;
   const x = useSharedValue(0);
   const placed = useRef(false);
+  // Subscribe so the pill repositions when the saved language finishes loading or changes.
+  const rtl = useLanguage((s) => s.lang) === 'ar';
 
   useEffect(() => {
     if (tabWidth <= 0) return;
-    const target = state.index * tabWidth;
+    // Right-to-left layouts put the first tab on the right.
+    const target = (rtl ? state.routes.length - 1 - state.index : state.index) * tabWidth;
     if (!placed.current) {
       // First layout: put the pill in place without animating from the left edge.
       x.set(target);
@@ -30,7 +34,7 @@ export function PillTabBar({ state, descriptors, emitter, navigateToTab }: Botto
     } else {
       x.set(animateTo(target));
     }
-  }, [state.index, tabWidth, x]);
+  }, [state.index, state.routes.length, tabWidth, x, rtl]);
 
   const pillStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
 

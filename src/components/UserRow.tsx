@@ -4,6 +4,7 @@ import { spacing } from '@/constants/theme';
 import type { ProfileSummaryRow } from '@/lib/types';
 import { Avatar, Button, Row, Txt } from './ui';
 import { makeStyles } from '@/hooks/useTheme';
+import { t, tc, tn } from '@/i18n';
 
 type Props = {
   user: ProfileSummaryRow;
@@ -12,6 +13,11 @@ type Props = {
   onToggleFollow?: (follow: boolean) => void;
   pending?: boolean;
 };
+
+/** Label for the Follow button once you follow someone ("Following" as a state, not the list title). */
+export function followingButtonLabel(): string {
+  return tc('button', 'Following');
+}
 
 export function UserRow({ user, isMe, onPress, onToggleFollow, pending }: Props) {
   const styles = useStyles();
@@ -22,14 +28,14 @@ export function UserRow({ user, isMe, onPress, onToggleFollow, pending }: Props)
         <View style={{ flex: 1 }}>
           <Txt variant="h3" numberOfLines={1}>{user.display_name || user.username}</Txt>
           <Txt variant="small" numberOfLines={1}>
-            @{user.username} · {user.follower_count} follower{user.follower_count === 1 ? '' : 's'}
+            @{user.username} · {tn(user.follower_count, '{count} follower', '{count} followers')}
           </Txt>
         </View>
       </Row>
       {!isMe && onToggleFollow ? (
         <Button
           small
-          title={user.is_following ? 'Following' : 'Follow'}
+          title={user.is_following ? followingButtonLabel() : t('Follow')}
           variant={user.is_following ? 'secondary' : 'primary'}
           loading={pending}
           onPress={() => onToggleFollow(!user.is_following)}

@@ -6,9 +6,11 @@ import { maxContentWidth, spacing } from '@/constants/theme';
 import { useFollowMutation, useProfile, useUserWorkouts } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { WorkoutCard } from './WorkoutCard';
+import { followingButtonLabel } from './UserRow';
 import { Avatar, Button, EmptyState, ErrorText, Loading, Row, Stat, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { AnimatedItem } from '@/components/motion';
+import { t } from '@/i18n';
 
 /** Instagram-style profile: header with counts + the user's workouts. Used by the Account tab and other users' pages. */
 export function ProfileView({ userId, headerExtra }: { userId: string; headerExtra?: React.ReactNode }) {
@@ -31,7 +33,7 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
   if (profile.error || !profile.data) {
     return (
       <View style={{ padding: spacing.xl }}>
-        <ErrorText>{profile.error?.message ?? 'Profile not found'}</ErrorText>
+        <ErrorText>{t(profile.error?.message ?? 'Profile not found')}</ErrorText>
       </View>
     );
   }
@@ -51,12 +53,12 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
           <Row style={{ gap: spacing.lg }}>
             <Avatar name={p.display_name || p.username} url={p.avatar_url} size={80} />
             <Row style={{ flex: 1, justifyContent: 'space-around' }}>
-              <Stat value={p.workout_count} label="Workouts" />
+              <Stat value={p.workout_count} label={t('Workouts')} />
               <Pressable onPress={() => router.push(`/user/${userId}/followers`)}>
-                <Stat value={p.follower_count} label="Followers" />
+                <Stat value={p.follower_count} label={t('Followers')} />
               </Pressable>
               <Pressable onPress={() => router.push(`/user/${userId}/following`)}>
-                <Stat value={p.following_count} label="Following" />
+                <Stat value={p.following_count} label={t('Following')} />
               </Pressable>
             </Row>
           </Row>
@@ -66,18 +68,18 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
             {p.bio ? <Txt style={{ marginTop: spacing.xs }}>{p.bio}</Txt> : null}
           </View>
           {isMe ? (
-            <Button variant="secondary" title="Edit profile" icon="create-outline" onPress={() => router.push('/edit-profile')} />
+            <Button variant="secondary" title={t('Edit profile')} icon="create-outline" onPress={() => router.push('/edit-profile')} />
           ) : (
             <Button
-              title={p.is_following ? 'Following' : 'Follow'}
+              title={p.is_following ? followingButtonLabel() : t('Follow')}
               variant={p.is_following ? 'secondary' : 'primary'}
               loading={follow.isPending}
               onPress={() => follow.mutate({ userId, follow: !p.is_following })}
             />
           )}
-          {follow.error ? <ErrorText>{follow.error.message}</ErrorText> : null}
+          {follow.error ? <ErrorText>{t(follow.error.message)}</ErrorText> : null}
           {headerExtra}
-          <Txt variant="label" style={{ marginTop: spacing.sm }}>Workouts</Txt>
+          <Txt variant="label" style={{ marginTop: spacing.sm }}>{t('Workouts')}</Txt>
         </View>
       }
       renderItem={({ item, index }) => (
@@ -91,8 +93,8 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
         ) : (
           <EmptyState
             icon="barbell-outline"
-            title={isMe ? 'No workouts yet' : 'No workouts yet'}
-            subtitle={isMe ? 'Start one from the Workout tab and it will show up here.' : undefined}
+            title={t('No workouts yet')}
+            subtitle={isMe ? t('Start one from the Workout tab and it will show up here.') : undefined}
           />
         )
       }

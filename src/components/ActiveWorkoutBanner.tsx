@@ -7,6 +7,7 @@ import { formatClock } from '@/lib/format';
 import { useActiveWorkout } from '@/store/activeWorkout';
 import { Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 /** "Workout in progress" strip shown on tabs while a workout is active. */
 export function ActiveWorkoutBanner() {
@@ -26,9 +27,9 @@ export function ActiveWorkoutBanner() {
       <Ionicons name="play-circle" size={24} color={colors.accentText} />
       <View style={{ flex: 1 }}>
         <Txt style={{ color: colors.accentText, fontWeight: '700' }}>{workout.title}</Txt>
-        <Txt variant="small" style={{ color: 'rgba(255,255,255,0.8)' }}>Workout in progress · {formatClock(elapsed)}</Txt>
+        <Txt variant="small" style={{ color: 'rgba(255,255,255,0.8)' }}>{t('Workout in progress · {time}', { time: formatClock(elapsed) })}</Txt>
       </View>
-      <Txt style={{ color: colors.accentText, fontWeight: '700' }}>Resume</Txt>
+      <Txt style={{ color: colors.accentText, fontWeight: '700' }}>{t('Resume')}</Txt>
     </Pressable>
   );
 }

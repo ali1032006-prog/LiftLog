@@ -1,6 +1,7 @@
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
+import { t } from '@/i18n';
 import { supabase } from './supabase';
 
 export type OAuthProvider = 'google' | 'apple' | 'github';
@@ -35,14 +36,14 @@ export async function signInWithProvider(provider: OAuthProvider): Promise<strin
     provider,
     options: { redirectTo, skipBrowserRedirect: true },
   });
-  if (error || !data.url) return error?.message ?? 'Could not start sign-in.';
+  if (error || !data.url) return error?.message ?? t('Could not start sign-in.');
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type !== 'success') return null; // user cancelled
 
   const params = new URL(result.url).searchParams;
   const code = params.get('code');
-  if (!code) return params.get('error_description') ?? 'Sign-in was not completed.';
+  if (!code) return params.get('error_description') ?? t('Sign-in was not completed.');
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
   return exchangeError ? exchangeError.message : null;
 }

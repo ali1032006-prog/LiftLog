@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { WeightUnit } from '@/lib/units';
 import { supabase } from '@/lib/supabase';
 import { usePreferences } from './preferences';
+import { t } from '@/i18n';
 
 export type ActiveSet = {
   id: string;
@@ -217,9 +218,9 @@ function mutate(
 
 function defaultTitle(): string {
   const h = new Date().getHours();
-  if (h < 12) return 'Morning Workout';
-  if (h < 17) return 'Afternoon Workout';
-  return 'Evening Workout';
+  if (h < 12) return t('Morning Workout');
+  if (h < 17) return t('Afternoon Workout');
+  return t('Evening Workout');
 }
 
 /** Shape expected by the finish_workout RPC. */

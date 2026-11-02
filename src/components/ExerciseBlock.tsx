@@ -7,6 +7,7 @@ import { PressableScale, SegmentedControl } from './motion';
 import { RestTimePicker } from './RestTimePicker';
 import { Card, IconButton, Row, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 export type EditableSet = { id: string; weightKg: number | null; reps: number | null; completed?: boolean };
 export type EditableExercise = { id: string; name: string; notes: string; restSeconds: number; unit: WeightUnit; sets: EditableSet[] };
@@ -39,11 +40,11 @@ export function ExerciseBlock({
           <View style={styles.badge}><Txt variant="small" style={{ color: colors.text }}>{index + 1}</Txt></View>
           <Txt variant="h3" style={{ flex: 1 }} numberOfLines={2}>{exercise.name}</Txt>
         </Row>
-        <IconButton name="trash-outline" color={colors.muted} size={20} onPress={onRemove} />
+        <IconButton name="trash-outline" color={colors.muted} size={20} onPress={onRemove} accessibilityLabel={t('Remove exercise')} />
       </Row>
 
       <TextInput
-        placeholder="Add notes for this exercise…"
+        placeholder={t('Add notes for this exercise…')}
         placeholderTextColor={colors.faint}
         value={exercise.notes}
         onChangeText={onChangeNotes}
@@ -55,7 +56,7 @@ export function ExerciseBlock({
         <RestTimePicker value={exercise.restSeconds} onChange={onChangeRest} />
         <SegmentedControl
           small
-          options={[{ value: 'kg', label: 'kg' }, { value: 'lb', label: 'lb' }]}
+          options={[{ value: 'kg', label: t('kg') }, { value: 'lb', label: t('lb') }]}
           value={unit}
           onChange={(u) => onChangeUnit(u as WeightUnit)}
         />
@@ -63,9 +64,9 @@ export function ExerciseBlock({
 
       <View style={{ gap: spacing.xs }}>
         <Row style={styles.headerRow}>
-          <Txt variant="label" style={styles.colSet}>Set</Txt>
-          <Txt variant="label" style={styles.colInput}>{unit}</Txt>
-          <Txt variant="label" style={styles.colInput}>Reps</Txt>
+          <Txt variant="label" style={styles.colSet}>{t('Set')}</Txt>
+          <Txt variant="label" style={styles.colInput}>{t(unit)}</Txt>
+          <Txt variant="label" style={styles.colInput}>{t('Reps')}</Txt>
           <View style={styles.colAction} />
         </Row>
         {exercise.sets.map((s, i) => (
@@ -83,7 +84,7 @@ export function ExerciseBlock({
 
       <PressableScale onPress={onAddSet} style={styles.addSet} accessibilityRole="button">
         <Ionicons name="add" size={18} color={colors.text} />
-        <Txt style={{ fontWeight: '600' }}>Add Set</Txt>
+        <Txt style={{ fontWeight: '600' }}>{t('Add Set')}</Txt>
       </PressableScale>
     </Card>
   );
@@ -116,7 +117,7 @@ function SetRow({
         placeholder="0"
         placeholderTextColor={colors.faint}
         value={weightText}
-        onChangeText={(t) => { setWeightText(t); onChange({ weightKg: parseWeightInput(t, unit) }); }}
+        onChangeText={(v) => { setWeightText(v); onChange({ weightKg: parseWeightInput(v, unit) }); }}
         selectTextOnFocus
       />
       <TextInput
@@ -126,8 +127,8 @@ function SetRow({
         placeholder="0"
         placeholderTextColor={colors.faint}
         value={repsText}
-        onChangeText={(t) => {
-          const digits = t.replace(/[^0-9]/g, '');
+        onChangeText={(v) => {
+          const digits = v.replace(/[^0-9]/g, '');
           setRepsText(digits);
           onChange({ reps: digits ? Number(digits) : null });
         }}
@@ -135,11 +136,11 @@ function SetRow({
       />
       <Row style={[styles.colAction, { justifyContent: 'flex-end', gap: 2 }]}>
         {onToggle ? (
-          <PressableScale onPress={onToggle} hitSlop={6} pressedScale={0.85} style={[styles.check, done && styles.checkDone]} accessibilityRole="checkbox" accessibilityState={{ checked: done }}>
+          <PressableScale onPress={onToggle} hitSlop={6} pressedScale={0.85} style={[styles.check, done && styles.checkDone]} accessibilityRole="checkbox" accessibilityState={{ checked: done }} accessibilityLabel={t('Set {n} done', { n: index + 1 })}>
             <Ionicons name="checkmark" size={18} color={done ? colors.successText : colors.muted} />
           </PressableScale>
         ) : null}
-        <IconButton name="close" size={18} color={colors.faint} onPress={onRemove} />
+        <IconButton name="close" size={18} color={colors.faint} onPress={onRemove} accessibilityLabel={t('Remove set {n}', { n: index + 1 })} />
       </Row>
     </Row>
   );

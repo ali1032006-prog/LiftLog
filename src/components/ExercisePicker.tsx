@@ -11,6 +11,7 @@ import { makeStyles, useTheme } from '@/hooks/useTheme';
 import Animated from 'react-native-reanimated';
 import { enterSheet, PressableScale } from './motion';
 import { Button, Input, Row, Txt } from './ui';
+import { t, tn } from '@/i18n';
 
 type Props = {
   visible: boolean;
@@ -90,12 +91,12 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
       <Animated.View entering={enterSheet} style={[styles.sheet, { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom }]}>
         <View style={styles.inner}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Txt variant="h2">Add exercise</Txt>
-            <Button small variant="ghost" title="Close" onPress={close} />
+            <Txt variant="h2">{t('Add exercise')}</Txt>
+            <Button small variant="ghost" title={t('Close')} onPress={close} />
           </Row>
           <Input
             autoFocus
-            placeholder="Search exercises, e.g. incline dumbbell"
+            placeholder={t('Search exercises, e.g. incline dumbbell')}
             value={query}
             onChangeText={setQuery}
             autoCorrect={false}
@@ -103,13 +104,13 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
           />
 
           <ChipRow
-            label="Categories"
+            allLabel={t('All categories')}
             options={CATEGORIES}
             value={category}
             onChange={setCategory}
           />
           <ChipRow
-            label="Equipment"
+            allLabel={t('All equipment')}
             options={EQUIPMENT_LIST}
             value={equipment}
             onChange={setEquipment}
@@ -118,7 +119,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
           {query.trim() && !exactExists ? (
             <Pressable onPress={() => pick(query.trim())} style={({ pressed }) => [styles.item, pressed && { opacity: 0.6 }]}>
               <Ionicons name="add-circle" size={22} color={colors.accent} />
-              <Txt style={{ color: colors.accent, fontWeight: '600', flex: 1 }}>Create custom exercise “{query.trim()}”</Txt>
+              <Txt style={{ color: colors.accent, fontWeight: '600', flex: 1 }}>{t('Create custom exercise “{name}”', { name: query.trim() })}</Txt>
             </Pressable>
           ) : null}
 
@@ -129,7 +130,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
             initialNumToRender={30}
             ListHeaderComponent={
               <Txt variant="small" style={{ paddingVertical: spacing.xs }}>
-                {filtered.length} exercise{filtered.length === 1 ? '' : 's'}
+                {tn(filtered.length, '{count} exercise', '{count} exercises')}
               </Txt>
             }
             renderItem={({ item }) => (
@@ -139,13 +140,13 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Txt>{item.name}</Txt>
-                  <Txt variant="small">{item.custom ? 'Custom exercise' : `${item.muscle} · ${item.equipment}`}</Txt>
+                  <Txt variant="small">{item.custom ? t('Custom exercise') : `${t(item.muscle ?? '')} · ${t(item.equipment ?? '')}`}</Txt>
                 </View>
               </Pressable>
             )}
             ListEmptyComponent={
               <Txt variant="muted" style={{ paddingVertical: spacing.lg, textAlign: 'center' }}>
-                No matches. Clear a filter, or type a name to create a custom exercise.
+                {t('No matches. Clear a filter, or type a name to create a custom exercise.')}
               </Txt>
             }
           />
@@ -156,12 +157,12 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
 }
 
 function ChipRow<T extends string>({
-  label,
+  allLabel,
   options,
   value,
   onChange,
 }: {
-  label: string;
+  allLabel: string;
   options: T[];
   value: T | null;
   onChange: (v: T | null) => void;
@@ -171,13 +172,13 @@ function ChipRow<T extends string>({
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
       <PressableScale onPress={() => onChange(null)} style={[styles.chip, value === null && styles.chipActive]}>
-        <Txt variant="small" style={{ color: value === null ? colors.accentText : colors.text, fontWeight: '600' }}>All {label.toLowerCase()}</Txt>
+        <Txt variant="small" style={{ color: value === null ? colors.accentText : colors.text, fontWeight: '600' }}>{allLabel}</Txt>
       </PressableScale>
       {options.map((o) => {
         const active = value === o;
         return (
           <PressableScale key={o} onPress={() => onChange(active ? null : o)} style={[styles.chip, active && styles.chipActive]}>
-            <Txt variant="small" style={{ color: active ? colors.accentText : colors.text, fontWeight: '600' }}>{o}</Txt>
+            <Txt variant="small" style={{ color: active ? colors.accentText : colors.text, fontWeight: '600' }}>{t(o)}</Txt>
           </PressableScale>
         );
       })}

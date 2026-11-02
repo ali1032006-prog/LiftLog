@@ -4,6 +4,7 @@ import { UserList } from '@/components/UserList';
 import { Input, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
 import { useSearchProfiles, useSuggestedProfiles } from '@/hooks/queries';
+import { t } from '@/i18n';
 
 export default function SearchScreen() {
   const [q, setQ] = useState('');
@@ -17,20 +18,20 @@ export default function SearchScreen() {
       users={list.data}
       loading={list.isLoading}
       error={list.error}
-      emptyTitle={searching ? 'No one found' : 'No suggestions yet'}
-      emptySubtitle={searching ? 'Try a different username.' : 'When more people join, they will show up here.'}
+      emptyTitle={searching ? t('No one found') : t('No suggestions yet')}
+      emptySubtitle={searching ? t('Try a different username.') : t('When more people join, they will show up here.')}
       header={
         <View style={{ paddingVertical: spacing.md, gap: spacing.md }}>
           <Input
             autoFocus
-            placeholder="Search by username or name"
+            placeholder={t('Search by username or name')}
             value={q}
             onChangeText={setQ}
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
           />
-          <Txt variant="label">{searching ? 'Results' : 'Suggested for you'}</Txt>
+          <Txt variant="label">{searching ? t('Results') : t('Suggested for you')}</Txt>
         </View>
       }
     />

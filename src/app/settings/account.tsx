@@ -7,16 +7,18 @@ import { spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 type Panel = 'email' | 'password' | null;
 
-const PROVIDER_LABEL: Record<string, string> = { email: 'Email and password', google: 'Google', apple: 'Apple', github: 'GitHub' };
+const providerLabel = (provider: string): string =>
+  ({ email: t('Email and password'), google: 'Google', apple: 'Apple', github: 'GitHub' } as Record<string, string>)[provider] ?? provider;
 
 /** Confirm the current password by signing in with it again. Returns an error message or null. */
 async function verifyCurrentPassword(email: string, password: string): Promise<string | null> {
-  if (!password) return 'Enter your current password.';
+  if (!password) return t('Enter your current password.');
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  return error ? 'Your current password is incorrect.' : null;
+  return error ? t('Your current password is incorrect.') : null;
 }
 
 export default function AccountScreen() {
@@ -27,7 +29,7 @@ export default function AccountScreen() {
   const email = user?.email ?? '';
   const identities = user?.identities ?? [];
   const hasPassword = identities.some((i) => i.provider === 'email');
-  const methods = identities.map((i) => PROVIDER_LABEL[i.provider] ?? i.provider).join(', ') || 'Email and password';
+  const methods = identities.map((i) => providerLabel(i.provider)).join(t(', ')) || t('Email and password');
 
   const [panel, setPanel] = useState<Panel>(null);
   const [busy, setBusy] = useState(false);
@@ -66,8 +68,8 @@ export default function AccountScreen() {
   const changeEmail = () =>
     run(async () => {
       const target = newEmail.trim();
-      if (!/^\S+@\S+\.\S+$/.test(target)) return 'Enter a valid email address.';
-      if (target.toLowerCase() === email.toLowerCase()) return 'That is already your email.';
+      if (!/^\S+@\S+\.\S+$/.test(target)) return t('Enter a valid email address.');
+      if (target.toLowerCase() === email.toLowerCase()) return t('That is already your email.');
       if (hasPassword) {
         const err = await verifyCurrentPassword(email, emailPassword);
         if (err) return err;
@@ -77,7 +79,7 @@ export default function AccountScreen() {
         Platform.OS === 'web' ? { emailRedirectTo: window.location.origin } : undefined,
       );
       return e ? e.message : null;
-    }, 'Check your inbox. We sent confirmation links to your old and new email. The change applies once you confirm.');
+    }, t('Check your inbox. We sent confirmation links to your old and new email. The change applies once you confirm.'));
 
   const sendCode = () =>
     run(async () => {
@@ -85,28 +87,28 @@ export default function AccountScreen() {
       if (e) return e.message;
       setCodeSent(true);
       return null;
-    }, `We sent a verification code to ${email}.`).then(() => setPanel('password'));
+    }, t('We sent a verification code to {email}.', { email })).then(() => setPanel('password'));
 
   const changePassword = () =>
     run(async () => {
-      if (newPassword.length < 6) return 'New password must be at least 6 characters.';
-      if (newPassword !== confirmPassword) return 'The new passwords do not match.';
+      if (newPassword.length < 6) return t('New password must be at least 6 characters.');
+      if (newPassword !== confirmPassword) return t('The new passwords do not match.');
       if (hasPassword) {
         const err = await verifyCurrentPassword(email, currentPassword);
         if (err) return err;
         const { error: e } = await supabase.auth.updateUser({ password: newPassword });
         return e ? e.message : null;
       }
-      if (!code.trim()) return 'Enter the verification code from your email.';
+      if (!code.trim()) return t('Enter the verification code from your email.');
       const { error: e } = await supabase.auth.updateUser({ password: newPassword, nonce: code.trim() });
       return e ? e.message : null;
-    }, 'Your password has been updated.');
+    }, t('Your password has been updated.'));
 
   const deleteAccount = async () => {
     const ok = await confirm(
-      'Delete your account?',
-      'This permanently deletes your profile, workouts, routines and followers. It cannot be undone.',
-      'Delete account',
+      t('Delete your account?'),
+      t('This permanently deletes your profile, workouts, routines and followers. It cannot be undone.'),
+      t('Delete account'),
       true,
     );
     if (!ok) return;
@@ -114,7 +116,7 @@ export default function AccountScreen() {
     const { error: e } = await supabase.functions.invoke('delete-account', { method: 'POST' });
     setBusy(false);
     if (e) {
-      setError('Could not delete your account. Please try again.');
+      setError(t('Could not delete your account. Please try again.'));
       return;
     }
     await signOut();
@@ -123,53 +125,53 @@ export default function AccountScreen() {
   return (
     <Screen scroll contentStyle={{ paddingVertical: spacing.lg, gap: spacing.xl }}>
       {dialog}
-      <SettingsGroup title="Signed in">
-        <SettingsRow icon="mail-outline" label="Email" value={email} />
-        <SettingsRow icon="key-outline" label="Sign-in methods" value={methods} />
+      <SettingsGroup title={t('Signed in')}>
+        <SettingsRow icon="mail-outline" label={t('Email')} value={email} />
+        <SettingsRow icon="key-outline" label={t('Sign-in methods')} value={methods} />
       </SettingsGroup>
 
       {success ? <Txt style={{ color: colors.success }}>{success}</Txt> : null}
       {error && panel === null ? <ErrorText>{error}</ErrorText> : null}
 
-      <SettingsGroup title="Security">
-        <SettingsRow icon="at-outline" label="Change email" onPress={() => openPanel('email')} />
-        <SettingsRow icon="lock-closed-outline" label={hasPassword ? 'Change password' : 'Set a password'} onPress={() => openPanel('password')} />
+      <SettingsGroup title={t('Security')}>
+        <SettingsRow icon="at-outline" label={t('Change email')} onPress={() => openPanel('email')} />
+        <SettingsRow icon="lock-closed-outline" label={hasPassword ? t('Change password') : t('Set a password')} onPress={() => openPanel('password')} />
       </SettingsGroup>
 
       {panel === 'email' ? (
         <Card style={{ gap: spacing.md }}>
-          <Txt variant="h3">Change email</Txt>
-          <Input label="New email" value={newEmail} onChangeText={setNewEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" />
-          {hasPassword ? <PasswordInput label="Current password" value={emailPassword} onChangeText={setEmailPassword} autoComplete="current-password" /> : null}
+          <Txt variant="h3">{t('Change email')}</Txt>
+          <Input label={t('New email')} value={newEmail} onChangeText={setNewEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" />
+          {hasPassword ? <PasswordInput label={t('Current password')} value={emailPassword} onChangeText={setEmailPassword} autoComplete="current-password" /> : null}
           <ErrorText>{error}</ErrorText>
-          <Button title="Send confirmation" onPress={changeEmail} loading={busy} />
+          <Button title={t('Send confirmation')} onPress={changeEmail} loading={busy} />
         </Card>
       ) : null}
 
       {panel === 'password' ? (
         <Card style={{ gap: spacing.md }}>
-          <Txt variant="h3">{hasPassword ? 'Change password' : 'Set a password'}</Txt>
+          <Txt variant="h3">{hasPassword ? t('Change password') : t('Set a password')}</Txt>
           {hasPassword ? (
-            <PasswordInput label="Current password" value={currentPassword} onChangeText={setCurrentPassword} autoComplete="current-password" />
+            <PasswordInput label={t('Current password')} value={currentPassword} onChangeText={setCurrentPassword} autoComplete="current-password" />
           ) : (
             <View style={{ gap: spacing.sm }}>
-              <Txt variant="muted">To confirm it is you, we will email a verification code to {email}.</Txt>
+              <Txt variant="muted">{t('To confirm it is you, we will email a verification code to {email}.', { email })}</Txt>
               {codeSent ? (
-                <Input label="Verification code" value={code} onChangeText={setCode} keyboardType="number-pad" autoComplete="one-time-code" />
+                <Input label={t('Verification code')} value={code} onChangeText={setCode} keyboardType="number-pad" autoComplete="one-time-code" />
               ) : (
-                <Button variant="secondary" title="Send code" onPress={sendCode} loading={busy} />
+                <Button variant="secondary" title={t('Send code')} onPress={sendCode} loading={busy} />
               )}
             </View>
           )}
-          <PasswordInput label="New password" value={newPassword} onChangeText={setNewPassword} autoComplete="new-password" />
-          <PasswordInput label="Confirm new password" value={confirmPassword} onChangeText={setConfirmPassword} autoComplete="new-password" />
+          <PasswordInput label={t('New password')} value={newPassword} onChangeText={setNewPassword} autoComplete="new-password" />
+          <PasswordInput label={t('Confirm new password')} value={confirmPassword} onChangeText={setConfirmPassword} autoComplete="new-password" />
           <ErrorText>{error}</ErrorText>
-          <Button title="Update password" onPress={changePassword} loading={busy} disabled={!hasPassword && !codeSent} />
+          <Button title={t('Update password')} onPress={changePassword} loading={busy} disabled={!hasPassword && !codeSent} />
         </Card>
       ) : null}
 
-      <SettingsGroup title="Danger zone" footer="Deleting your account removes all of your data from LiftLog.">
-        <SettingsRow icon="trash-outline" label="Delete account" danger onPress={deleteAccount} />
+      <SettingsGroup title={t('Danger zone')} footer={t('Deleting your account removes all of your data from LiftLog.')}>
+        <SettingsRow icon="trash-outline" label={t('Delete account')} danger onPress={deleteAccount} />
       </SettingsGroup>
     </Screen>
   );

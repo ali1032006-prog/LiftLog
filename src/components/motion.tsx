@@ -12,6 +12,7 @@ import Animated, {
   ZoomIn,
 } from 'react-native-reanimated';
 import { radius } from '@/constants/theme';
+import { isRTL, useLanguage } from '@/i18n';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { Txt } from './ui';
 
@@ -85,16 +86,20 @@ export function SegmentedControl<T extends string>({
   const index = Math.max(0, options.findIndex((o) => o.value === value));
   const x = useSharedValue(0);
   const placed = useRef(false);
+  // Subscribe so the pill repositions when the saved language finishes loading or changes.
+  const rtl = useLanguage((s) => s.lang) === 'ar';
 
   useEffect(() => {
     if (segment <= 0) return;
+    // Right-to-left layouts put the first option on the right.
+    const target = (rtl ? options.length - 1 - index : index) * segment;
     if (!placed.current) {
-      x.set(index * segment);
+      x.set(target);
       placed.current = true;
     } else {
-      x.set(animateTo(index * segment));
+      x.set(animateTo(target));
     }
-  }, [index, segment, x]);
+  }, [index, segment, x, options.length, rtl]);
 
   const pillStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
 
@@ -144,3 +149,6 @@ export function AnimatedItem({ index = 0, children, style }: { index?: number; c
     </Animated.View>
   );
 }
+
+/** Mirror a directional icon (chevrons, arrows) in right-to-left layouts. */
+export const flipInRTL = () => (isRTL() ? { transform: [{ scaleX: -1 }] } : undefined);

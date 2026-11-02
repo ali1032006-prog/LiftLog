@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router/js-tabs';
 import { PillTabBar } from '@/components/PillTabBar';
 import { IconButton } from '@/components/ui';
 import { useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 
 
 export default function TabsLayout() {
@@ -25,7 +26,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('Home'),
           headerTitle: 'LiftLog',
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={String(color)} />,
           headerRight: () => <IconButton name="search" onPress={() => router.push('/search')} style={{ marginRight: 12 }} />,
@@ -34,14 +35,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="workout"
         options={{
-          title: 'Workout',
+          title: t('Workout'),
           tabBarIcon: ({ color, size }) => <Ionicons name="barbell" size={size + 2} color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
-          title: 'Account',
+          title: t('Account'),
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={String(color)} />,
           headerRight: () => <IconButton name="settings-outline" onPress={() => router.push('/settings')} style={{ marginRight: 12 }} />,
         }}

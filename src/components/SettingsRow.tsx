@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import { radius, spacing } from '@/constants/theme';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
-import { PressableScale } from './motion';
+import { flipInRTL, PressableScale } from './motion';
 import { Txt } from './ui';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -52,7 +52,7 @@ export function SettingsRow({ icon, label, value, onPress, danger, toggle, right
           thumbColor="#FFFFFF"
         />
       ) : null}
-      {onPress && !toggle ? <Ionicons name="chevron-forward" size={18} color={colors.faint} /> : null}
+      {onPress && !toggle ? <Ionicons name="chevron-forward" size={18} color={colors.faint} style={flipInRTL()} /> : null}
     </>
   );
   if (!onPress) return <View style={styles.row}>{content}</View>;

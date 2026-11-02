@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
+import { t } from '@/i18n';
 import { fetchEnabledProviders, signInWithProvider, type OAuthProvider } from '@/lib/oauth';
 import { Button, ErrorText, Row, Txt } from './ui';
 
@@ -34,14 +35,14 @@ export function SocialSignIn() {
     <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
       <Row style={{ gap: spacing.md }}>
         <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
-        <Txt variant="small">or continue with</Txt>
+        <Txt variant="small">{t('or continue with')}</Txt>
         <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
       </Row>
       {providers.map((p) => (
         <Button
           key={p}
           variant="secondary"
-          title={`Continue with ${LABELS[p]}`}
+          title={t('Continue with {provider}', { provider: LABELS[p] })}
           icon={ICONS[p]}
           loading={busy === p}
           disabled={busy !== null && busy !== p}
