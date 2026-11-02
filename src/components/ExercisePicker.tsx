@@ -8,7 +8,8 @@ import { useExercises } from '@/hooks/queries';
 import { asUnit, type WeightUnit } from '@/lib/units';
 import { usePreferences } from '@/store/preferences';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
-import { PressableScale } from './motion';
+import Animated from 'react-native-reanimated';
+import { enterSheet, PressableScale } from './motion';
 import { Button, Input, Row, Txt } from './ui';
 
 type Props = {
@@ -85,8 +86,8 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={close} presentationStyle="pageSheet">
-      <View style={[styles.sheet, { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom }]}>
+    <Modal visible={visible} animationType="none" transparent onRequestClose={close}>
+      <Animated.View entering={enterSheet} style={[styles.sheet, { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom }]}>
         <View style={styles.inner}>
           <Row style={{ justifyContent: 'space-between' }}>
             <Txt variant="h2">Add exercise</Txt>
@@ -149,7 +150,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
             }
           />
         </View>
-      </View>
+      </Animated.View>
     </Modal>
   );
 }

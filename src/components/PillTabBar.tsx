@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { animateTo } from './motion';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { maxContentWidth, radius, spacing } from '@/constants/theme';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
@@ -9,7 +10,7 @@ import { makeStyles, useTheme } from '@/hooks/useTheme';
 const BAR_HEIGHT = 58;
 const PILL_INSET = 6;
 
-/** Bottom tab bar with a highlight pill that springs to the selected tab. */
+/** Bottom tab bar with a highlight pill that slides to the selected tab. */
 export function PillTabBar({ state, descriptors, emitter, navigateToTab }: BottomTabBarProps) {
   const { colors } = useTheme();
   const styles = useStyles();
@@ -27,7 +28,7 @@ export function PillTabBar({ state, descriptors, emitter, navigateToTab }: Botto
       x.set(target);
       placed.current = true;
     } else {
-      x.set(withSpring(target, { damping: 20, stiffness: 220, mass: 0.7 }));
+      x.set(animateTo(target));
     }
   }, [state.index, tabWidth, x]);
 

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { enterPop } from './motion';
+import { enterFade, enterPop } from './motion';
 import { radius, spacing } from '@/constants/theme';
 import { Button, Txt } from './ui';
 import { makeStyles } from '@/hooks/useTheme';
@@ -56,7 +56,8 @@ export function useDialog() {
   };
 
   const dialog = (
-    <Modal transparent visible={!!open} animationType="fade" onRequestClose={() => close(false)}>
+    <Modal transparent visible={!!open} animationType="none" onRequestClose={() => close(false)}>
+      <Animated.View entering={enterFade} style={{ flex: 1 }}>
       <Pressable style={styles.backdrop} onPress={() => close(false)}>
         <Animated.View entering={enterPop} style={styles.box}>
         <Pressable onPress={() => {}} style={{ gap: spacing.md }}>
@@ -76,6 +77,7 @@ export function useDialog() {
         </Pressable>
         </Animated.View>
       </Pressable>
+      </Animated.View>
     </Modal>
   );
 

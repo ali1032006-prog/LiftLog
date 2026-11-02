@@ -3,29 +3,34 @@ import { Pressable, View, type PressableProps, type StyleProp, type ViewStyle } 
 import Animated, {
   Easing,
   FadeIn,
-  FadeInDown,
   FadeOut,
   LinearTransition,
+  SlideInDown,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
   ZoomIn,
 } from 'react-native-reanimated';
 import { radius } from '@/constants/theme';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { Txt } from './ui';
 
-/** The one spring used across the app (same feel as the bottom navigation pill). */
-export const SPRING = { damping: 20, stiffness: 220, mass: 0.7 } as const;
+/** Upper limit for every UI animation in the app (ms). */
+export const ANIM_MS = 200;
+/** Fast start, soft landing; used by every timed animation. */
+export const EASE_OUT = Easing.out(Easing.cubic);
 
-/** Entering/exiting presets built on the same spring. */
-export const enterCard = (index = 0) => FadeInDown.springify().damping(SPRING.damping).stiffness(SPRING.stiffness).mass(SPRING.mass).delay(Math.min(index, 8) * 40);
-export const enterPop = ZoomIn.springify().damping(SPRING.damping).stiffness(SPRING.stiffness).mass(SPRING.mass);
-/** Dropdown menus pop in over exactly 0.2 seconds (timed, not a spring, so the length is fixed). */
-export const enterMenu = ZoomIn.duration(200).easing(Easing.out(Easing.cubic));
-export const enterFade = FadeIn.duration(160);
+/** Animate a shared value to `value` within the app's duration cap. */
+export const animateTo = (value: number, ms: number = ANIM_MS) => withTiming(value, { duration: ms, easing: EASE_OUT });
+
+// Entering/exiting presets. On web Reanimated only honours duration/delay/easing for these,
+// so they are timed (not springs) to guarantee the length.
+export const enterPop = ZoomIn.duration(ANIM_MS).easing(EASE_OUT);
+export const enterMenu = enterPop;
+export const enterSheet = SlideInDown.duration(ANIM_MS).easing(EASE_OUT);
+export const enterFade = FadeIn.duration(150);
 export const exitFade = FadeOut.duration(140);
-export const layoutSpring = LinearTransition.springify().damping(SPRING.damping).stiffness(SPRING.stiffness).mass(SPRING.mass);
+export const layoutSpring = LinearTransition.duration(ANIM_MS).easing(EASE_OUT);
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -44,11 +49,11 @@ export function PressableScale({ style, pressedScale = 0.96, onPressIn, onPressO
       {...rest}
       disabled={disabled}
       onPressIn={(e) => {
-        scale.set(withSpring(pressedScale, SPRING));
+        scale.set(animateTo(pressedScale, 100));
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.set(withSpring(1, SPRING));
+        scale.set(animateTo(1, 150));
         onPressOut?.(e);
       }}
       style={[style, animatedStyle]}
@@ -87,7 +92,7 @@ export function SegmentedControl<T extends string>({
       x.set(index * segment);
       placed.current = true;
     } else {
-      x.set(withSpring(index * segment, SPRING));
+      x.set(animateTo(index * segment));
     }
   }, [index, segment, x]);
 

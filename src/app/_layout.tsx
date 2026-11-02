@@ -58,6 +58,7 @@ function RootNavigator() {
         headerShadowVisible: false,
         headerBackButtonDisplayMode: 'minimal',
         contentStyle: { backgroundColor: colors.bg },
+        animationDuration: 200,
       }}
     >
       <Stack.Protected guard={!!session}>
