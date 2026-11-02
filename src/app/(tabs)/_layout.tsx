@@ -35,7 +35,7 @@ export default function TabsLayout() {
         name="workout"
         options={{
           title: 'Workout',
-          tabBarIcon: ({ color, size }) => <Ionicons name="add-circle" size={size + 4} color={String(color)} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="barbell" size={size + 2} color={String(color)} />,
         }}
       />
       <Tabs.Screen
