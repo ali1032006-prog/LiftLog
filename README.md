@@ -43,3 +43,12 @@ npx eslint src          # lint
 | `settings` | Display name, bio, kg/lb unit, sign out |
 
 Weights are stored in kg and converted to the user's unit on display.
+
+## Deploy (web)
+
+```bash
+npm run deploy:web      # expo export → dist, then vercel deploy --prod
+```
+
+Live: https://liftlog-brown-zeta.vercel.app (Vercel project `liftlog`). The `.env` values are baked into
+the static build at export time, so set them locally before deploying.
