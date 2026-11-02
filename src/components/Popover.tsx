@@ -4,7 +4,7 @@ import { Modal, Pressable, ScrollView, useWindowDimensions, View } from 'react-n
 import Animated from 'react-native-reanimated';
 import { radius, spacing } from '@/constants/theme';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
-import { enterPop, PressableScale } from './motion';
+import { enterMenu, PressableScale } from './motion';
 import { Txt } from './ui';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -46,7 +46,7 @@ function Popover({
     <Modal transparent visible={!!anchor} animationType="none" onRequestClose={onClose}>
       <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close menu">
         {anchor ? (
-          <Animated.View entering={enterPop} style={[styles.panel, { top, left, width }]}>
+          <Animated.View entering={enterMenu} style={[styles.panel, { top, left, width }]}>
             <Pressable onPress={() => {}}>{children}</Pressable>
           </Animated.View>
         ) : null}
