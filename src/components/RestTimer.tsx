@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, spacing } from '@/constants/theme';
 import { formatClock } from '@/lib/format';
 import { useActiveWorkout } from '@/store/activeWorkout';
+import { usePreferences } from '@/store/preferences';
+import { enterCard, exitFade } from './motion';
 import { Button, Row, Txt } from './ui';
 import { makeStyles } from '@/hooks/useTheme';
 
@@ -47,7 +49,7 @@ export function RestTimer() {
   useEffect(() => {
     if (!restEndsAt || remaining > 0 || buzzed.current) return;
     buzzed.current = true;
-    if (Platform.OS !== 'web') void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (Platform.OS !== 'web' && usePreferences.getState().haptics) void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const t = setTimeout(skipRest, 1500);
     return () => clearTimeout(t);
   }, [remaining, restEndsAt, skipRest]);
@@ -55,7 +57,7 @@ export function RestTimer() {
   if (!restEndsAt) return null;
 
   return (
-    <View style={[styles.wrap, { paddingBottom: insets.bottom + spacing.sm }]}>
+    <Animated.View entering={enterCard(0)} exiting={exitFade} style={[styles.wrap, { paddingBottom: insets.bottom + spacing.sm }]}>
       <View style={styles.track}>
         <Animated.View style={[styles.fill, barStyle]} />
       </View>
@@ -68,7 +70,7 @@ export function RestTimer() {
         <Button small variant="secondary" title="+15s" onPress={() => adjustRest(15)} />
         <Button small variant="ghost" title="Skip" onPress={skipRest} />
       </Row>
-    </View>
+    </Animated.View>
   );
 }
 

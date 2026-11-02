@@ -18,5 +18,7 @@ export const supabase = createClient<Database>(url, anonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: Platform.OS === 'web',
+    // PKCE: OAuth and email links return a one-time code that is exchanged for a session.
+    flowType: 'pkce',
   },
 });

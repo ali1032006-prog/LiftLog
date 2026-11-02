@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { PressableScale } from './motion';
 import { spacing } from '@/constants/theme';
 import type { ProfileSummaryRow } from '@/lib/types';
 import { Avatar, Button, Row, Txt } from './ui';
@@ -15,7 +16,7 @@ type Props = {
 export function UserRow({ user, isMe, onPress, onToggleFollow, pending }: Props) {
   const styles = useStyles();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
+    <PressableScale onPress={onPress} pressedScale={0.98} style={styles.row} accessibilityRole="button">
       <Row style={{ flex: 1 }}>
         <Avatar name={user.display_name || user.username} url={user.avatar_url} size={44} />
         <View style={{ flex: 1 }}>
@@ -34,7 +35,7 @@ export function UserRow({ user, isMe, onPress, onToggleFollow, pending }: Props)
           onPress={() => onToggleFollow(!user.is_following)}
         />
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }
 

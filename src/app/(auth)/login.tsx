@@ -1,6 +1,7 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { SocialSignIn } from '@/components/SocialSignIn';
 import { Button, ErrorText, Input, PasswordInput, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
@@ -51,6 +52,7 @@ export default function LoginScreen() {
         />
         <ErrorText>{error}</ErrorText>
         <Button title="Sign in" onPress={signIn} loading={loading} disabled={!identifier.trim() || !password} />
+        <SocialSignIn />
         <View style={styles.footer}>
           <Txt variant="muted">New here? </Txt>
           <Link href="/(auth)/register" style={{ color: colors.accent, fontWeight: '700' }}>Create an account</Link>

@@ -1,6 +1,7 @@
 import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { SocialSignIn } from '@/components/SocialSignIn';
 import { Button, ErrorText, Input, PasswordInput, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
@@ -128,6 +129,7 @@ export default function RegisterScreen() {
           loading={loading}
           disabled={!email || !password || !usernameValid || available === false}
         />
+        <SocialSignIn />
         <View style={styles.footer}>
           <Txt variant="muted">Already have an account? </Txt>
           <Link href="/(auth)/login" style={{ color: colors.accent, fontWeight: '700' }}>Sign in</Link>

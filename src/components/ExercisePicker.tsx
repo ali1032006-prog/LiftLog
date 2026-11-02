@@ -6,7 +6,9 @@ import { maxContentWidth, radius, spacing } from '@/constants/theme';
 import { EQUIPMENT_LIST, LIBRARY_EXERCISES, type Equipment, type MuscleGroup } from '@/data/exercises';
 import { useExercises } from '@/hooks/queries';
 import { asUnit, type WeightUnit } from '@/lib/units';
+import { usePreferences } from '@/store/preferences';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { PressableScale } from './motion';
 import { Button, Input, Row, Txt } from './ui';
 
 type Props = {
@@ -78,7 +80,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
 
   const pick = (name: string) => {
     const own = mine.find((e) => e.name.toLowerCase() === name.toLowerCase());
-    onPick(name, asUnit(own?.weight_unit));
+    onPick(name, own ? asUnit(own.weight_unit) : usePreferences.getState().defaultUnit);
     close();
   };
 
@@ -167,15 +169,15 @@ function ChipRow<T extends string>({
   const styles = useStyles();
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
-      <Pressable onPress={() => onChange(null)} style={[styles.chip, value === null && styles.chipActive]}>
+      <PressableScale onPress={() => onChange(null)} style={[styles.chip, value === null && styles.chipActive]}>
         <Txt variant="small" style={{ color: value === null ? colors.accentText : colors.text, fontWeight: '600' }}>All {label.toLowerCase()}</Txt>
-      </Pressable>
+      </PressableScale>
       {options.map((o) => {
         const active = value === o;
         return (
-          <Pressable key={o} onPress={() => onChange(active ? null : o)} style={[styles.chip, active && styles.chipActive]}>
+          <PressableScale key={o} onPress={() => onChange(active ? null : o)} style={[styles.chip, active && styles.chipActive]}>
             <Txt variant="small" style={{ color: active ? colors.accentText : colors.text, fontWeight: '600' }}>{o}</Txt>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </ScrollView>

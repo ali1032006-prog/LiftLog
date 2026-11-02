@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { WeightUnit } from '@/lib/units';
+import { usePreferences } from './preferences';
 
 export type ActiveSet = {
   id: string;
@@ -99,10 +100,10 @@ export const useActiveWorkout = create<State>()(
       setTitle: (title) => mutate(set, get, (w) => ({ ...w, title })),
       setNotes: (notes) => mutate(set, get, (w) => ({ ...w, notes })),
 
-      addExercise: (name, unit = 'kg') =>
+      addExercise: (name, unit = usePreferences.getState().defaultUnit) =>
         mutate(set, get, (w) => ({
           ...w,
-          exercises: [...w.exercises, { id: uid(), name: name.trim(), notes: '', restSeconds: 90, unit, sets: [newSet()] }],
+          exercises: [...w.exercises, { id: uid(), name: name.trim(), notes: '', restSeconds: usePreferences.getState().defaultRestSeconds, unit, sets: [newSet()] }],
         })),
 
       removeExercise: (exerciseId) =>
@@ -155,7 +156,7 @@ export const useActiveWorkout = create<State>()(
             ),
           },
         });
-        if (nowCompleted && ex.restSeconds > 0) get().startRest(ex.restSeconds);
+        if (nowCompleted && ex.restSeconds > 0 && usePreferences.getState().autoStartRest) get().startRest(ex.restSeconds);
       },
 
       startRest: (seconds) => set({ restEndsAt: Date.now() + seconds * 1000, restTotal: seconds }),

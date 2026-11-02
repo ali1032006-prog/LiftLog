@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { maxContentWidth, radius, spacing, type Colors } from '@/constants/theme';
+import { PressableScale } from './motion';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 
 // ---------- Layout ----------
@@ -143,14 +144,14 @@ export function Button({ title, variant = 'primary', loading, small, icon, disab
   const v = makeButtonVariants(colors)[variant];
   const isDisabled = disabled || loading;
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       disabled={isDisabled}
-      style={({ pressed }) => [
+      style={[
         styles.button,
         small && styles.buttonSmall,
         { backgroundColor: v.bg, borderColor: v.border },
-        (pressed || isDisabled) && { opacity: 0.6 },
+        isDisabled && { opacity: 0.5 },
         style,
       ]}
       {...rest}
@@ -163,7 +164,7 @@ export function Button({ title, variant = 'primary', loading, small, icon, disab
           <Text style={[styles.buttonText, small && { fontSize: 14 }, { color: v.text }, textStyle]}>{title}</Text>
         </>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -177,14 +178,14 @@ export function IconButton({
   const { colors } = useTheme();
   const styles = useStyles();
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       hitSlop={8}
-      style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.5 }, style as StyleProp<ViewStyle>]}
+      style={[styles.iconButton, style as StyleProp<ViewStyle>]}
       {...rest}
     >
       <Ionicons name={name} size={size} color={color ?? colors.text} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -284,7 +285,7 @@ const useStyles = makeStyles((colors) => ({
   passwordBox: { flexDirection: 'row', alignItems: 'center', paddingVertical: 0, paddingRight: spacing.sm },
   // The outer box draws the field; the text input itself is borderless and fills the remaining width.
   passwordField: { flex: 1, minWidth: 0, paddingVertical: 12, color: colors.text, fontSize: 16, borderWidth: 0 },
-  passwordToggle: { paddingHorizontal: spacing.xs, paddingVertical: 6 },
+  passwordToggle: { width: 36, height: 36, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   input: {
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
@@ -301,13 +302,13 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 13,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.pill,
     borderWidth: 1,
   },
   buttonSmall: { paddingVertical: 7, paddingHorizontal: spacing.md },
   buttonText: { fontSize: 16, fontWeight: '700' },
-  iconButton: { padding: spacing.xs, alignItems: 'center', justifyContent: 'center' },
+  iconButton: { width: 36, height: 36, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   avatar: { backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
   empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl, paddingHorizontal: spacing.xl },
 }));
@@ -338,9 +339,7 @@ export function PasswordInput({ label, style, ...props }: TextInputProps & { lab
           hitSlop={8}
           style={styles.passwordToggle}
         >
-          <Text style={{ color: colors.accent, fontSize: 13, fontWeight: '600' }}>
-            {visible ? 'Hide password' : 'Show password'}
-          </Text>
+          <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.muted} />
         </Pressable>
       </View>
     </View>

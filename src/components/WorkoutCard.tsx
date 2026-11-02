@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { PressableScale } from './motion';
 import { spacing } from '@/constants/theme';
 import { formatDuration, timeAgo } from '@/lib/format';
 import type { WorkoutCard as WorkoutCardType, WorkoutCardExercise } from '@/lib/types';
@@ -21,7 +22,7 @@ export function WorkoutCard({ card, showUser = true, onPress, onPressUser }: Pro
   const exercises = (Array.isArray(card.exercises) ? card.exercises : []) as unknown as WorkoutCardExercise[];
   const extra = exercises.length - MAX_EXERCISES;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => pressed && { opacity: 0.8 }}>
+    <PressableScale onPress={onPress} pressedScale={0.98} accessibilityRole="button">
       <Card>
         {showUser ? (
           <Pressable onPress={onPressUser} disabled={!onPressUser}>
@@ -64,7 +65,7 @@ export function WorkoutCard({ card, showUser = true, onPress, onPressUser }: Pro
           </View>
         ) : null}
       </Card>
-    </Pressable>
+    </PressableScale>
   );
 }
 

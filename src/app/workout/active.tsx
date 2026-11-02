@@ -11,7 +11,11 @@ import { useFinishWorkout } from '@/hooks/queries';
 import { useDialog } from '@/components/Dialog';
 import { formatClock } from '@/lib/format';
 import { toFinishPayload, useActiveWorkout } from '@/store/activeWorkout';
+import { usePreferences } from '@/store/preferences';
+import * as Haptics from 'expo-haptics';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { AnimatedItem } from '@/components/motion';
 
 export default function ActiveWorkoutScreen() {
   const { colors } = useTheme();
@@ -24,6 +28,18 @@ export default function ActiveWorkoutScreen() {
   const [now, setNow] = useState(() => Date.now());
   const leaving = useRef(false);
   const { confirm, notify, dialog } = useDialog();
+
+  const keepAwake = usePreferences((p) => p.keepAwake);
+  const haptics = usePreferences((p) => p.haptics);
+
+  // Keep the screen on during a workout when the preference is enabled.
+  useEffect(() => {
+    if (!keepAwake) return;
+    activateKeepAwakeAsync('active-workout').catch(() => {});
+    return () => {
+      deactivateKeepAwake('active-workout').catch(() => {});
+    };
+  }, [keepAwake]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -101,11 +117,14 @@ export default function ActiveWorkoutScreen() {
           ) : null}
 
           {workout.exercises.map((e, i) => (
+            <AnimatedItem key={e.id} index={i}>
             <ExerciseBlock
-              key={e.id}
               exercise={e}
               index={i}
-              onToggleSet={(setId) => s.toggleSet(e.id, setId)}
+              onToggleSet={(setId) => {
+                if (haptics && Platform.OS !== 'web') void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                s.toggleSet(e.id, setId);
+              }}
               onChangeSet={(setId, patch) => s.updateSet(e.id, setId, patch)}
               onAddSet={() => s.addSet(e.id)}
               onRemoveSet={(setId) => s.removeSet(e.id, setId)}
@@ -116,6 +135,7 @@ export default function ActiveWorkoutScreen() {
               onChangeRest={(restSeconds) => s.updateExercise(e.id, { restSeconds })}
               onChangeUnit={(unit) => s.updateExercise(e.id, { unit })}
             />
+            </AnimatedItem>
           ))}
 
           <Button variant="secondary" title="Add Exercise" icon="add" onPress={() => setPickerOpen(true)} />

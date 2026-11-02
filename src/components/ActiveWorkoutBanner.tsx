@@ -36,6 +36,6 @@ export function ActiveWorkoutBanner() {
 const useStyles = makeStyles((colors) => ({
   banner: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.md,
-    backgroundColor: colors.accent, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md,
+    backgroundColor: colors.accent, borderRadius: radius.pill, padding: spacing.md, marginBottom: spacing.md,
   },
 }));

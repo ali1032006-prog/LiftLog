@@ -8,6 +8,7 @@ import { maxContentWidth, spacing } from '@/constants/theme';
 import { useFeed } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { AnimatedItem } from '@/components/motion';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -27,8 +28,8 @@ export default function HomeScreen() {
       onEndReached={() => feed.hasNextPage && !feed.isFetchingNextPage && feed.fetchNextPage()}
       onEndReachedThreshold={0.4}
       ListHeaderComponent={<ActiveWorkoutBanner />}
-      renderItem={({ item }) => (
-        <View style={{ marginBottom: spacing.md }}>
+      renderItem={({ item, index }) => (
+        <AnimatedItem index={index} style={{ marginBottom: spacing.md }}>
           <WorkoutCard
             card={item}
             onPress={() => router.push(`/workout/${item.workout_id}`)}
@@ -36,7 +37,7 @@ export default function HomeScreen() {
               item.user_id === session?.user.id ? router.push('/(tabs)/account') : router.push(`/user/${item.user_id}`)
             }
           />
-        </View>
+        </AnimatedItem>
       )}
       ListEmptyComponent={
         feed.isLoading ? (

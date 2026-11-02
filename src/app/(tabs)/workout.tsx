@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { AnimatedItem, PressableScale } from '@/components/motion';
 import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { Button, Card, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
@@ -68,8 +69,9 @@ export default function WorkoutTab() {
           />
         ) : null}
 
-        {routines.data?.map((r) => (
-          <Pressable key={r.id} onPress={() => router.push(`/routine/${r.id}`)} style={({ pressed }) => pressed && { opacity: 0.8 }}>
+        {routines.data?.map((r, i) => (
+          <AnimatedItem key={r.id} index={i}>
+          <PressableScale onPress={() => router.push(`/routine/${r.id}`)} pressedScale={0.98} accessibilityRole="button">
             <Card>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Txt variant="h3" style={{ flex: 1 }} numberOfLines={1}>{r.title}</Txt>
@@ -82,7 +84,8 @@ export default function WorkoutTab() {
               </Txt>
               <Button small title="Start Routine" onPress={() => begin(routineToPrefill(r))} style={styles.startButton} />
             </Card>
-          </Pressable>
+          </PressableScale>
+          </AnimatedItem>
         ))}
       </View>
     </Screen>

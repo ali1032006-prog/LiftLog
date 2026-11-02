@@ -11,6 +11,7 @@ import { useDialog } from '@/components/Dialog';
 import type { RoutineDetail } from '@/lib/types';
 import { uid, useActiveWorkout } from '@/store/activeWorkout';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { AnimatedItem } from '@/components/motion';
 
 function fromRoutine(r: RoutineDetail): EditableExercise[] {
   return r.routine_exercises.map((re) => ({
@@ -134,8 +135,8 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
         ) : null}
 
         {exercises.map((e, i) => (
+          <AnimatedItem key={e.id} index={i}>
           <ExerciseBlock
-            key={e.id}
             exercise={e}
             index={i}
             onChangeSet={(setId, patch) =>
@@ -156,6 +157,7 @@ function RoutineEditor({ id, isNew, initial }: { id: string; isNew: boolean; ini
             onChangeRest={(r) => edit((prev) => prev.map((x) => (x.id === e.id ? { ...x, restSeconds: r } : x)))}
             onChangeUnit={(u) => edit((prev) => prev.map((x) => (x.id === e.id ? { ...x, unit: u } : x)))}
           />
+          </AnimatedItem>
         ))}
 
         <Button variant="secondary" title="Add Exercise" icon="add" onPress={() => setPickerOpen(true)} />

@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { WorkoutCard } from './WorkoutCard';
 import { Avatar, Button, EmptyState, ErrorText, Loading, Row, Stat, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
+import { AnimatedItem } from '@/components/motion';
 
 /** Instagram-style profile: header with counts + the user's workouts. Used by the Account tab and other users' pages. */
 export function ProfileView({ userId, headerExtra }: { userId: string; headerExtra?: React.ReactNode }) {
@@ -65,7 +66,7 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
             {p.bio ? <Txt style={{ marginTop: spacing.xs }}>{p.bio}</Txt> : null}
           </View>
           {isMe ? (
-            <Button variant="secondary" title="Edit profile" icon="create-outline" onPress={() => router.push('/settings')} />
+            <Button variant="secondary" title="Edit profile" icon="create-outline" onPress={() => router.push('/edit-profile')} />
           ) : (
             <Button
               title={p.is_following ? 'Following' : 'Follow'}
@@ -79,10 +80,10 @@ export function ProfileView({ userId, headerExtra }: { userId: string; headerExt
           <Txt variant="label" style={{ marginTop: spacing.sm }}>Workouts</Txt>
         </View>
       }
-      renderItem={({ item }) => (
-        <View style={{ marginBottom: spacing.md }}>
+      renderItem={({ item, index }) => (
+        <AnimatedItem index={index} style={{ marginBottom: spacing.md }}>
           <WorkoutCard card={item} showUser={false} onPress={() => router.push(`/workout/${item.workout_id}`)} />
-        </View>
+        </AnimatedItem>
       )}
       ListEmptyComponent={
         workouts.isLoading ? (

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 import { radius, spacing } from '@/constants/theme';
 import { parseWeightInput, weightInputValue, type WeightUnit } from '@/lib/units';
+import { PressableScale, SegmentedControl } from './motion';
 import { RestTimePicker } from './RestTimePicker';
 import { Card, IconButton, Row, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
@@ -52,19 +53,12 @@ export function ExerciseBlock({
 
       <Row style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <RestTimePicker value={exercise.restSeconds} onChange={onChangeRest} />
-        <Row style={styles.unitToggle}>
-          {(['kg', 'lb'] as WeightUnit[]).map((u) => (
-            <Pressable
-              key={u}
-              onPress={() => onChangeUnit(u)}
-              style={[styles.unitOption, unit === u && styles.unitOptionActive]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: unit === u }}
-            >
-              <Txt variant="small" style={{ fontWeight: '700', color: unit === u ? colors.accentText : colors.text }}>{u}</Txt>
-            </Pressable>
-          ))}
-        </Row>
+        <SegmentedControl
+          small
+          options={[{ value: 'kg', label: 'kg' }, { value: 'lb', label: 'lb' }]}
+          value={unit}
+          onChange={(u) => onChangeUnit(u as WeightUnit)}
+        />
       </Row>
 
       <View style={{ gap: spacing.xs }}>
@@ -87,10 +81,10 @@ export function ExerciseBlock({
         ))}
       </View>
 
-      <Pressable onPress={onAddSet} style={({ pressed }) => [styles.addSet, pressed && { opacity: 0.6 }]}>
+      <PressableScale onPress={onAddSet} style={styles.addSet} accessibilityRole="button">
         <Ionicons name="add" size={18} color={colors.text} />
         <Txt style={{ fontWeight: '600' }}>Add Set</Txt>
-      </Pressable>
+      </PressableScale>
     </Card>
   );
 }
@@ -141,9 +135,9 @@ function SetRow({
       />
       <Row style={[styles.colAction, { justifyContent: 'flex-end', gap: 2 }]}>
         {onToggle ? (
-          <Pressable onPress={onToggle} hitSlop={6} style={[styles.check, done && styles.checkDone]}>
+          <PressableScale onPress={onToggle} hitSlop={6} pressedScale={0.85} style={[styles.check, done && styles.checkDone]} accessibilityRole="checkbox" accessibilityState={{ checked: done }}>
             <Ionicons name="checkmark" size={18} color={done ? colors.successText : colors.muted} />
-          </Pressable>
+          </PressableScale>
         ) : null}
         <IconButton name="close" size={18} color={colors.faint} onPress={onRemove} />
       </Row>
@@ -173,15 +167,12 @@ const useStyles = makeStyles((colors) => ({
     textAlign: 'center',
   },
   check: {
-    width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center',
+    width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center',
     backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border,
   },
   checkDone: { backgroundColor: colors.success, borderColor: colors.success },
-  unitToggle: { backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, padding: 3, gap: 2 },
-  unitOption: { paddingVertical: 4, paddingHorizontal: 12, borderRadius: radius.pill },
-  unitOptionActive: { backgroundColor: colors.accent },
   addSet: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs,
-    paddingVertical: 10, borderRadius: radius.md, backgroundColor: colors.surfaceAlt,
+    paddingVertical: 10, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt,
   },
 }));
