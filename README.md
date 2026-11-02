@@ -52,3 +52,25 @@ npm run deploy:web      # expo export → dist, then vercel deploy --prod
 
 Live: https://liftlog-brown-zeta.vercel.app (Vercel project `liftlog`). The `.env` values are baked into
 the static build at export time, so set them locally before deploying.
+
+## Social sign-in (Google, Apple, GitHub)
+
+The login and register screens show a "Continue with …" button for each provider that is
+enabled in Supabase, and hide the rest. To enable one:
+
+1. Create OAuth credentials with the provider (Google Cloud Console, Apple Developer, or GitHub
+   Developer Settings). Use this callback URL:
+   `https://rgqzsndhttuektlykhps.supabase.co/auth/v1/callback`
+2. In Supabase → Authentication → Sign In / Providers, turn the provider on and paste the
+   client ID and secret.
+3. In Supabase → Authentication → URL Configuration, set the Site URL to
+   `https://liftlog-brown-zeta.vercel.app` and add these redirect URLs:
+   - `https://liftlog-brown-zeta.vercel.app`
+   - `http://localhost:8081`
+   - `liftlog://auth-callback` (the installed app)
+   - `exp://**` (Expo Go during development)
+
+## Edge Functions
+
+- `login-with-username`: signs in with a username without exposing emails to the client.
+- `delete-account`: permanently deletes the caller's account and data.
