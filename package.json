@@ -48,7 +48,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "build:web": "expo export --platform web && node scripts/fix-web-assets.js && cp vercel.json dist/ && cp -R .vercel dist/",
-    "deploy:web": "npm run build:web && vercel deploy dist --prod --yes"
+    "deploy:web": "npm run build:web && npx --yes vercel@latest deploy dist --prod --yes"
   },
   "private": true
 }
