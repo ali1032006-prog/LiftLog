@@ -1,5 +1,8 @@
 // Arabic translations for the workout screens.
 const workout: Record<string, string> = {
+  // exercise photos
+  'Show how to do {name}': 'اعرض طريقة أداء {name}',
+  'Photos: free-exercise-db (public domain)': 'الصور: free-exercise-db (ملكية عامة)',
   // tabs
   Home: 'الرئيسية',
   // workout tab

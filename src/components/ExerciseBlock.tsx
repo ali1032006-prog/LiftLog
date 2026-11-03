@@ -5,6 +5,7 @@ import { radius, spacing } from '@/constants/theme';
 import { parseWeightInput, weightInputValue, type WeightUnit } from '@/lib/units';
 import { PressableScale, SegmentedControl } from './motion';
 import { RestTimePicker } from './RestTimePicker';
+import { ExerciseAnimation } from './ExerciseAnimation';
 import { Card, IconButton, Row, Txt } from './ui';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { t } from '@/i18n';
@@ -38,6 +39,7 @@ export function ExerciseBlock({
       <Row style={{ justifyContent: 'space-between' }}>
         <Row style={{ flex: 1 }}>
           <View style={styles.badge}><Txt variant="small" style={{ color: colors.text }}>{index + 1}</Txt></View>
+          <ExerciseAnimation name={exercise.name} size={48} expandable />
           <Txt variant="h3" style={{ flex: 1 }} numberOfLines={2}>{exercise.name}</Txt>
         </Row>
         <IconButton name="trash-outline" color={colors.muted} size={20} onPress={onRemove} accessibilityLabel={t('Remove exercise')} />

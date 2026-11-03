@@ -10,6 +10,8 @@ import { usePreferences } from '@/store/preferences';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import Animated from 'react-native-reanimated';
 import { enterSheet, PressableScale } from './motion';
+import { ExerciseAnimation } from './ExerciseAnimation';
+import { exerciseImages } from '@/data/exerciseMedia';
 import { Button, Input, Row, Txt } from './ui';
 import { t, tn } from '@/i18n';
 
@@ -135,9 +137,13 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
             }
             renderItem={({ item }) => (
               <Pressable onPress={() => pick(item.name)} style={({ pressed }) => [styles.item, pressed && { opacity: 0.6 }]}>
-                <View style={styles.iconWrap}>
-                  <Ionicons name={item.custom ? 'person-outline' : 'barbell-outline'} size={18} color={colors.muted} />
-                </View>
+                {!item.custom && exerciseImages(item.name) ? (
+                  <ExerciseAnimation name={item.name} size={44} />
+                ) : (
+                  <View style={styles.iconWrap}>
+                    <Ionicons name={item.custom ? 'person-outline' : 'barbell-outline'} size={18} color={colors.muted} />
+                  </View>
+                )}
                 <View style={{ flex: 1 }}>
                   <Txt>{item.name}</Txt>
                   <Txt variant="small">{item.custom ? t('Custom exercise') : `${t(item.muscle ?? '')} · ${t(item.equipment ?? '')}`}</Txt>
@@ -198,7 +204,7 @@ const useStyles = makeStyles((colors) => ({
     borderBottomColor: colors.border,
   },
   iconWrap: {
-    width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt,
+    width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt,
   },
   chips: { gap: spacing.xs, paddingVertical: 2 },
   chip: {

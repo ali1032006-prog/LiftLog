@@ -5,6 +5,7 @@ import { Avatar, Button, Card, ErrorText, Loading, Row, Screen, Txt } from '@/co
 import { spacing } from '@/constants/theme';
 import { useAddWorkoutPhoto, useCopyWorkout, useDeleteWorkout, useRemoveWorkoutPhoto, useRoutines, useWorkout } from '@/hooks/queries';
 import { PhotoStrip } from '@/components/PhotoStrip';
+import { ExerciseAnimation } from '@/components/ExerciseAnimation';
 import { flipInRTL } from '@/components/motion';
 import { pickImage, uploadPhoto } from '@/lib/photos';
 import { useState } from 'react';
@@ -146,7 +147,10 @@ export default function WorkoutDetailScreen() {
 
       {w.workout_exercises.map((we, i) => (
         <Card key={we.id}>
-          <Txt variant="h3">{i + 1}. {we.exercise.name}</Txt>
+          <Row>
+            <ExerciseAnimation name={we.exercise.name} size={44} expandable />
+            <Txt variant="h3" style={{ flex: 1 }}>{i + 1}. {we.exercise.name}</Txt>
+          </Row>
           {we.notes ? <Txt variant="muted">{we.notes}</Txt> : null}
           <Row style={styles.setHeader}>
             <Txt variant="label" style={styles.colSet}>{t('Set')}</Txt>
