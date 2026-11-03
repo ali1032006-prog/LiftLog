@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import { t } from '@/i18n';
 import { supabase } from './supabase';
 
-export type PhotoBucket = 'avatars' | 'workout-photos';
+export type PhotoBucket = 'avatars' | 'workout-photos' | 'exercise-photos';
 
 export type PickedImage = { uri: string; width: number };
 

@@ -32,7 +32,7 @@ const CATEGORY_OF: Record<MuscleGroup, Category> = {
   Shoulders: 'Others', Abs: 'Others', 'Full Body': 'Others', Neck: 'Others',
 };
 
-type PickerItem = { key: string; name: string; muscle?: MuscleGroup; equipment?: Equipment; custom: boolean };
+type PickerItem = { key: string; name: string; muscle?: MuscleGroup; equipment?: Equipment; custom: boolean; hasPhoto: boolean };
 
 const LIBRARY_ITEMS: PickerItem[] = LIBRARY_EXERCISES.map((e) => ({
   key: `lib:${e.name}`,
@@ -40,6 +40,7 @@ const LIBRARY_ITEMS: PickerItem[] = LIBRARY_EXERCISES.map((e) => ({
   muscle: e.muscle,
   equipment: e.equipment,
   custom: false,
+  hasPhoto: exerciseMedia(e.name) !== null,
 }));
 const LIBRARY_NAMES = new Set(LIBRARY_EXERCISES.map((e) => e.name.toLowerCase()));
 
@@ -56,7 +57,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
   const allItems = useMemo(() => {
     const custom: PickerItem[] = mine
       .filter((e) => !LIBRARY_NAMES.has(e.name.toLowerCase()))
-      .map((e) => ({ key: `own:${e.id}`, name: e.name, custom: true }));
+      .map((e) => ({ key: `own:${e.id}`, name: e.name, custom: true, hasPhoto: (e.photo_paths ?? []).length > 0 }));
     return [...custom, ...LIBRARY_ITEMS];
   }, [mine]);
 
@@ -137,7 +138,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
             }
             renderItem={({ item }) => (
               <Pressable onPress={() => pick(item.name)} style={({ pressed }) => [styles.item, pressed && { opacity: 0.6 }]}>
-                {!item.custom && exerciseMedia(item.name) ? (
+                {item.hasPhoto ? (
                   <ExerciseAnimation name={item.name} size={44} />
                 ) : (
                   <View style={styles.iconWrap}>

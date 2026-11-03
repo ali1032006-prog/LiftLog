@@ -148,7 +148,7 @@ export default function WorkoutDetailScreen() {
       {w.workout_exercises.map((we, i) => (
         <Card key={we.id}>
           <Row>
-            <ExerciseAnimation name={we.exercise.name} size={44} expandable />
+            <ExerciseAnimation name={we.exercise.name} size={44} expandable photoPaths={we.exercise.photo_paths} editable={isMine} />
             <Txt variant="h3" style={{ flex: 1 }}>{i + 1}. {we.exercise.name}</Txt>
           </Row>
           {we.notes ? <Txt variant="muted">{we.notes}</Txt> : null}

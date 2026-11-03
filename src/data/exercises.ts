@@ -327,3 +327,10 @@ export const LIBRARY_EXERCISES: LibraryExercise[] = BASE.flatMap(([base, muscle,
     equipment: eq,
   })),
 ).sort((a, b) => a.name.localeCompare(b.name));
+
+const LIBRARY_NAME_SET = new Set(LIBRARY_EXERCISES.map((e) => e.name.toLowerCase()));
+
+/** True for built-in exercises; false for ones people created themselves. */
+export function isLibraryExercise(name: string): boolean {
+  return LIBRARY_NAME_SET.has(name.trim().toLowerCase());
+}

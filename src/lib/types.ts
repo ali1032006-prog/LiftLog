@@ -14,9 +14,9 @@ export type Database = {
   public: {
     Tables: {
       exercises: {
-        Row: { created_at: string; id: string; name: string; owner_id: string; weight_unit: string }
-        Insert: { created_at?: string; id?: string; name: string; owner_id: string }
-        Update: { created_at?: string; id?: string; name?: string; owner_id?: string }
+        Row: { created_at: string; id: string; name: string; owner_id: string; weight_unit: string; photo_paths: string[] }
+        Insert: { created_at?: string; id?: string; name: string; owner_id: string; photo_paths?: string[] }
+        Update: { created_at?: string; id?: string; name?: string; owner_id?: string; photo_paths?: string[] }
         Relationships: [
           { foreignKeyName: "exercises_owner_id_fkey"; columns: ["owner_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
         ]
@@ -193,7 +193,7 @@ export type WorkoutDetail = Tables<"workouts"> & {
   profile: Pick<Profile, "id" | "username" | "display_name" | "avatar_url">
   workout_photos: WorkoutPhoto[]
   workout_exercises: (Tables<"workout_exercises"> & {
-    exercise: Pick<Tables<"exercises">, "id" | "name">
+    exercise: Pick<Tables<"exercises">, "id" | "name" | "photo_paths">
     sets: Tables<"sets">[]
   })[]
 }

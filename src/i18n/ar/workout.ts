@@ -3,6 +3,10 @@ const workout: Record<string, string> = {
   // exercise photos
   'Show how to do {name}': 'اعرض طريقة أداء {name}',
   'Photos: {credit}': 'الصور: {credit}',
+  'Add a photo of {name}': 'أضف صورة لـ {name}',
+  'Add up to {max} photos, like the start and end of the move. Anyone who sees your workouts can see them.': 'أضف حتى {max} صور، مثل بداية الحركة ونهايتها. يمكن لكل من يرى تمارينك رؤيتها.',
+  'You can add up to {max} photos.': 'يمكنك إضافة حتى {max} صور.',
+  'Could not save the photo.': 'تعذّر حفظ الصورة.',
   // tabs
   Home: 'الرئيسية',
   // workout tab

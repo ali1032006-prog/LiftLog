@@ -39,7 +39,7 @@ export function ExerciseBlock({
       <Row style={{ justifyContent: 'space-between' }}>
         <Row style={{ flex: 1 }}>
           <View style={styles.badge}><Txt variant="small" style={{ color: colors.text }}>{index + 1}</Txt></View>
-          <ExerciseAnimation name={exercise.name} size={48} expandable />
+          <ExerciseAnimation name={exercise.name} size={48} expandable editable />
           <Txt variant="h3" style={{ flex: 1 }} numberOfLines={2}>{exercise.name}</Txt>
         </Row>
         <IconButton name="trash-outline" color={colors.muted} size={20} onPress={onRemove} accessibilityLabel={t('Remove exercise')} />

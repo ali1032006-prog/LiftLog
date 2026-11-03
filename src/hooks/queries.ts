@@ -59,7 +59,7 @@ export function useUserWorkouts(userId: string | undefined) {
 }
 
 const WORKOUT_DETAIL_SELECT =
-  '*, profile:profiles(id, username, display_name, avatar_url), workout_photos(id, path, position), workout_exercises(*, exercise:exercises(id, name), sets(*))';
+  '*, profile:profiles(id, username, display_name, avatar_url), workout_photos(id, path, position), workout_exercises(*, exercise:exercises(id, name, photo_paths), sets(*))';
 
 export function useWorkout(id: string | undefined) {
   return useQuery({
@@ -212,6 +212,62 @@ export function useExercises() {
       const uid = auth.session?.user.id;
       if (!uid) return [] as Tables<'exercises'>[];
       return unwrap(await supabase.from('exercises').select('*').eq('owner_id', uid).order('name')) as Tables<'exercises'>[];
+    },
+  });
+}
+
+/** Max photos on a custom exercise (start and end of the move). */
+export const MAX_EXERCISE_PHOTOS = 2;
+
+/**
+ * Adds a photo to one of your custom exercises. The exercise row is created first if you
+ * have only typed its name so far (custom exercises are otherwise saved when a workout finishes).
+ */
+export function useAddExercisePhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ name, path }: { name: string; path: string }) => {
+      const cleanup = () => supabase.storage.from('exercise-photos').remove([path]);
+      const { data: id, error: rpcError } = await supabase.rpc('find_or_create_exercise', { p_name: name });
+      if (rpcError || !id) {
+        await cleanup();
+        throw new Error(rpcError?.message ?? t('Could not save the photo.'));
+      }
+      const { data: row, error: readError } = await supabase.from('exercises').select('photo_paths').eq('id', id).single();
+      if (readError) {
+        await cleanup();
+        throw new Error(readError.message);
+      }
+      const current = (row?.photo_paths ?? []) as string[];
+      if (current.length >= MAX_EXERCISE_PHOTOS) {
+        await cleanup();
+        throw new Error(t('You can add up to {max} photos.', { max: MAX_EXERCISE_PHOTOS }));
+      }
+      const { error } = await supabase.from('exercises').update({ photo_paths: [...current, path] }).eq('id', id);
+      if (error) {
+        await cleanup();
+        throw new Error(error.message);
+      }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.exercises });
+      void qc.invalidateQueries({ queryKey: ['workout'] });
+    },
+  });
+}
+
+/** Removes one photo from one of your custom exercises and deletes the file. */
+export function useRemoveExercisePhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ exerciseId, path, remaining }: { exerciseId: string; path: string; remaining: string[] }) => {
+      const { error } = await supabase.from('exercises').update({ photo_paths: remaining }).eq('id', exerciseId);
+      if (error) throw new Error(error.message);
+      await supabase.storage.from('exercise-photos').remove([path]);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.exercises });
+      void qc.invalidateQueries({ queryKey: ['workout'] });
     },
   });
 }
