@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { radius, spacing } from '@/constants/theme';
-import { exerciseImages } from '@/data/exerciseMedia';
+import { exerciseMedia, type ExerciseMedia } from '@/data/exerciseMedia';
 import { makeStyles } from '@/hooks/useTheme';
 import { t } from '@/i18n';
 import { animateTo, enterFade, enterPop } from './motion';
@@ -19,13 +19,13 @@ type Props = {
   expandable?: boolean;
 };
 
-/** Plays an exercise's start and end photos back and forth like a short animation. Renders nothing for exercises without photos. */
+/** Shows an exercise's photos; two photos alternate like a short animation. Renders nothing for exercises without photos. */
 export function ExerciseAnimation({ name, size, expandable = false }: Props) {
-  const images = exerciseImages(name);
+  const media = exerciseMedia(name);
   const [open, setOpen] = useState(false);
-  if (!images) return null;
+  if (!media) return null;
 
-  const frames = <Frames images={images} size={size} />;
+  const frames = <Frames images={media.frames} size={size} />;
   if (!expandable) return frames;
   return (
     <>
@@ -37,23 +37,26 @@ export function ExerciseAnimation({ name, size, expandable = false }: Props) {
       >
         {frames}
       </Pressable>
-      <ExercisePreview name={name} images={images} visible={open} onClose={() => setOpen(false)} />
+      <ExercisePreview name={name} media={media} visible={open} onClose={() => setOpen(false)} />
     </>
   );
 }
 
-function Frames({ images, size }: { images: [string, string]; size: number }) {
+function Frames({ images, size }: { images: string[]; size: number }) {
   const styles = useStyles();
   const second = useSharedValue(0);
 
+  const animated = images.length > 1;
+
   useEffect(() => {
+    if (!animated) return;
     let showSecond = false;
     const id = setInterval(() => {
       showSecond = !showSecond;
       second.value = animateTo(showSecond ? 1 : 0);
     }, FRAME_MS);
     return () => clearInterval(id);
-  }, [second]);
+  }, [second, animated]);
 
   const topStyle = useAnimatedStyle(() => ({ opacity: second.value }));
   const box = { width: size, height: size };
@@ -61,14 +64,16 @@ function Frames({ images, size }: { images: [string, string]; size: number }) {
   return (
     <View style={[styles.frame, box]}>
       <Image source={images[0]} style={box} contentFit="cover" cachePolicy="memory-disk" transition={0} />
-      <Animated.View style={[styles.top, box, topStyle]}>
-        <Image source={images[1]} style={box} contentFit="cover" cachePolicy="memory-disk" transition={0} />
-      </Animated.View>
+      {animated ? (
+        <Animated.View style={[styles.top, box, topStyle]}>
+          <Image source={images[1]} style={box} contentFit="cover" cachePolicy="memory-disk" transition={0} />
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
 
-function ExercisePreview({ name, images, visible, onClose }: { name: string; images: [string, string]; visible: boolean; onClose: () => void }) {
+function ExercisePreview({ name, media, visible, onClose }: { name: string; media: ExerciseMedia; visible: boolean; onClose: () => void }) {
   const styles = useStyles();
   if (!visible) return null;
   return (
@@ -77,8 +82,8 @@ function ExercisePreview({ name, images, visible, onClose }: { name: string; ima
         <Pressable style={styles.fill} onPress={onClose} accessibilityLabel={t('Close')} />
         <Animated.View entering={enterPop} style={styles.box}>
           <Txt variant="h3" numberOfLines={2}>{name}</Txt>
-          <Frames images={images} size={280} />
-          <Txt variant="small" style={{ textAlign: 'center' }}>{t('Photos: free-exercise-db (public domain)')}</Txt>
+          <Frames images={media.frames} size={280} />
+          <Txt variant="small" style={{ textAlign: 'center' }}>{t('Photos: {credit}', { credit: media.credit })}</Txt>
           <Button title={t('Close')} variant="secondary" onPress={onClose} />
         </Animated.View>
       </Animated.View>

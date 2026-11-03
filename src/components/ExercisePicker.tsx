@@ -11,7 +11,7 @@ import { makeStyles, useTheme } from '@/hooks/useTheme';
 import Animated from 'react-native-reanimated';
 import { enterSheet, PressableScale } from './motion';
 import { ExerciseAnimation } from './ExerciseAnimation';
-import { exerciseImages } from '@/data/exerciseMedia';
+import { exerciseMedia } from '@/data/exerciseMedia';
 import { Button, Input, Row, Txt } from './ui';
 import { t, tn } from '@/i18n';
 
@@ -137,7 +137,7 @@ export function ExercisePicker({ visible, onClose, onPick }: Props) {
             }
             renderItem={({ item }) => (
               <Pressable onPress={() => pick(item.name)} style={({ pressed }) => [styles.item, pressed && { opacity: 0.6 }]}>
-                {!item.custom && exerciseImages(item.name) ? (
+                {!item.custom && exerciseMedia(item.name) ? (
                   <ExerciseAnimation name={item.name} size={44} />
                 ) : (
                   <View style={styles.iconWrap}>
@@ -176,7 +176,7 @@ function ChipRow<T extends string>({
   const { colors } = useTheme();
   const styles = useStyles();
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
       <PressableScale onPress={() => onChange(null)} style={[styles.chip, value === null && styles.chipActive]}>
         <Txt variant="small" style={{ color: value === null ? colors.accentText : colors.text, fontWeight: '600' }}>{allLabel}</Txt>
       </PressableScale>
@@ -206,6 +206,8 @@ const useStyles = makeStyles((colors) => ({
   iconWrap: {
     width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt,
   },
+  // Keep the chip rows at full height when the list below is long.
+  chipScroll: { flexGrow: 0, flexShrink: 0 },
   chips: { gap: spacing.xs, paddingVertical: 2 },
   chip: {
     paddingHorizontal: spacing.md,
