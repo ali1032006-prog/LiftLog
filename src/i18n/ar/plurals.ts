@@ -1,6 +1,12 @@
 // Arabic count forms. Keys are "<English plural key>|<form>", where form is one of
 // zero, two, few (3-10), many (11-99) or other (100+). Missing forms fall back to the plain key.
 const plurals: Record<string, string> = {
+  '{count} messages left today|two': 'رسالتان متبقيتان اليوم',
+  '{count} messages left today|few': '{count} رسائل متبقية اليوم',
+  '{count} messages left today|many': '{count} رسالة متبقية اليوم',
+  '{count} messages left today|other': '{count} رسالة متبقية اليوم',
+  '{count} messages left today|zero': 'لا توجد رسائل متبقية اليوم',
+
   '{count} sets|two': 'مجموعتان',
   '{count} sets|few': '{count} مجموعات',
   '{count} sets|many': '{count} مجموعة',

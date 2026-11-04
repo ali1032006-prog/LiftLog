@@ -79,3 +79,13 @@ enabled in Supabase, and hide the rest. To enable one:
 
 - `login-with-username`: signs in with a username without exposing emails to the client.
 - `delete-account`: permanently deletes the caller's account and data.
+- `coach-chat`: the AI coach on the Coach tab. Sends the person's message, their recent chat and a summary of their last 4 weeks of workouts to free OpenRouter models, then stores both sides in `coach_messages`. Limited to 20 messages per person per 24 hours.
+
+## AI coach setup
+
+The coach uses only free OpenRouter models (`:free`), so it never charges your OpenRouter account.
+
+1. Create a key at [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).
+2. In Supabase, open **Edge Functions → Secrets** and add `OPENROUTER_API_KEY` with that key.
+
+OpenRouter allows 50 free-model requests per day across your whole account, or 1,000 per day once you have bought at least $10 of credits (the credits are not spent by free models). Until the key is set, the Coach tab shows "The coach is not set up yet."

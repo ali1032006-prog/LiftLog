@@ -13,6 +13,14 @@ export type Database = {
   }
   public: {
     Tables: {
+      coach_messages: {
+        Row: { content: string; created_at: string; id: string; role: string; user_id: string }
+        Insert: { content: string; created_at?: string; id?: string; role: string; user_id: string }
+        Update: { content?: string; created_at?: string; id?: string; role?: string; user_id?: string }
+        Relationships: [
+          { foreignKeyName: "coach_messages_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ]
+      }
       exercises: {
         Row: { created_at: string; id: string; name: string; owner_id: string; weight_unit: string; photo_paths: string[] }
         Insert: { created_at?: string; id?: string; name: string; owner_id: string; photo_paths?: string[] }

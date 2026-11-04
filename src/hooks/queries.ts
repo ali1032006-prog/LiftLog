@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { Json, ProfileStats, ProfileSummaryRow, RoutineDetail, Tables, WorkoutCard, WorkoutDetail } from '@/lib/types';
-import { t } from '@/i18n';
+import { currentLang, t } from '@/i18n';
 
 const PAGE = 20;
 
@@ -13,6 +13,7 @@ export const keys = {
   routines: ['routines'] as const,
   routine: (id: string) => ['routine', id] as const,
   exercises: ['exercises'] as const,
+  coach: ['coach'] as const,
   search: (q: string) => ['search', q] as const,
   suggested: ['suggested'] as const,
   followers: (id: string) => ['followers', id] as const,
@@ -358,5 +359,78 @@ export function useUpdateProfile(myId: string | undefined) {
       void qc.invalidateQueries({ queryKey: ['followers'] });
       void qc.invalidateQueries({ queryKey: ['following'] });
     },
+  });
+}
+
+// ---------- AI coach ----------
+
+export type CoachMessage = { id: string; role: 'user' | 'assistant'; content: string; created_at: string };
+
+/** Messages the coach accepts per person in any 24 hours (enforced by the coach-chat function). */
+export const COACH_DAILY_LIMIT = 20;
+
+/** Your chat with the coach, oldest first (the latest 100 messages). */
+export function useCoachMessages() {
+  return useQuery({
+    queryKey: keys.coach,
+    queryFn: async () => {
+      const rows = unwrap(
+        await supabase.from('coach_messages').select('id, role, content, created_at').order('created_at', { ascending: false }).limit(100),
+      ) as CoachMessage[];
+      return rows.reverse();
+    },
+  });
+}
+
+/** Friendly text for the coach-chat function's error codes. */
+function coachError(code: string | undefined): string {
+  switch (code) {
+    case 'limit':
+      return t('You have used your {max} coach messages for today. Try again tomorrow.', { max: COACH_DAILY_LIMIT });
+    case 'not_configured':
+      return t('The coach is not set up yet.');
+    case 'too_long':
+      return t('That message is too long. Keep it under 2000 characters.');
+    case 'auth':
+      return t('Please sign in again.');
+    default:
+      return t('The coach is busy right now. Try again in a minute.');
+  }
+}
+
+export function useSendCoachMessage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (message: string) => {
+      const { data, error } = await supabase.functions.invoke<{ reply: string; remaining: number }>('coach-chat', {
+        body: { message, lang: currentLang() },
+      });
+      if (error) {
+        let code: string | undefined;
+        try {
+          code = (await (error as { context?: Response }).context?.json())?.code;
+        } catch {
+          code = undefined;
+        }
+        throw new Error(coachError(code));
+      }
+      return data!;
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.coach }),
+  });
+}
+
+/** Deletes your whole chat history with the coach. */
+export function useClearCoachChat() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data: auth } = await supabase.auth.getSession();
+      const uid = auth.session?.user.id;
+      if (!uid) throw new Error(t('Not signed in'));
+      const { error } = await supabase.from('coach_messages').delete().eq('user_id', uid);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.coach }),
   });
 }
