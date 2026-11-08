@@ -179,6 +179,21 @@ async function handleReturn(req: Request): Promise<Response> {
   return redirect(`${back}/${order.id}`);
 }
 
+// Payment methods offered on the payment page: the ones used in Kuwait (KNET, Visa/Mastercard,
+// Apple Pay, Google Pay). Matched by MyFatoorah's English method name, since codes aren't documented.
+const KUWAIT_METHODS = [/knet/i, /visa|master/i, /apple ?pay/i, /google ?pay/i];
+
+/** MyFatoorah's ids for the Kuwait payment methods enabled on this account. Empty = show all. */
+async function kuwaitPaymentMethods(amount: number): Promise<number[]> {
+  const { ok, data } = await myFatoorah('/v2/InitiatePayment', { InvoiceAmount: amount, CurrencyIso: 'KWD' });
+  const methods: { PaymentMethodId: number; PaymentMethodCode?: string; PaymentMethodEn?: string }[] =
+    ok ? (data?.Data?.PaymentMethods ?? []) : [];
+  console.log('payment methods', methods.map((m) => `${m.PaymentMethodId}:${m.PaymentMethodCode}:${m.PaymentMethodEn}`).join(', '));
+  return methods
+    .filter((m) => KUWAIT_METHODS.some((re) => re.test(m.PaymentMethodEn ?? '')))
+    .map((m) => m.PaymentMethodId);
+}
+
 // ---------- App actions ----------
 
 async function handleCheckout(req: Request, body: any): Promise<Response> {
@@ -201,6 +216,7 @@ async function handleCheckout(req: Request, body: any): Promise<Response> {
 
   const { data: profile } = await auth.asUser.from('profiles').select('username, display_name').eq('id', auth.user.id).single();
   const callback = `${url}/functions/v1/premium`;
+  const methodIds = await kuwaitPaymentMethods(PLANS[plan]);
   const { ok, data } = await myFatoorah('/v2/SendPayment', {
     NotificationOption: 'LNK',
     CustomerName: (profile?.display_name || profile?.username || 'LiftLog member').slice(0, 100),
@@ -212,6 +228,7 @@ async function handleCheckout(req: Request, body: any): Promise<Response> {
     ErrorUrl: callback,
     CustomerReference: order.id,
     UserDefinedField: JSON.stringify({ o: order.id, r: returnUrl }),
+    ...(methodIds.length ? { InvoicePaymentMethods: methodIds } : {}),
     InvoiceItems: [{ ItemName: plan === 'yearly' ? 'LiftLog Premium (1 year)' : 'LiftLog Premium (1 month)', Quantity: 1, UnitPrice: PLANS[plan] }],
   });
   if (!ok || !data?.Data?.InvoiceURL) {
