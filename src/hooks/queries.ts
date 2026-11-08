@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Json, ProfileStats, ProfileSummaryRow, RoutineDetail, Tables, WorkoutCard, WorkoutDetail } from '@/lib/types';
 import { currentLang, t } from '@/i18n';
@@ -15,6 +16,7 @@ export const keys = {
   exercises: ['exercises'] as const,
   coach: ['coach'] as const,
   subscription: ['subscription'] as const,
+  paymentOrder: (id: string) => ['paymentOrder', id] as const,
   bodyWeights: ['bodyWeights'] as const,
   weightGoal: ['weightGoal'] as const,
   search: (q: string) => ['search', q] as const,
@@ -483,6 +485,34 @@ export function useMarkPremiumIntroSeen() {
   });
 }
 
+export type PaymentStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
+export type PaymentOrder = Tables<'payment_orders'> & { status: PaymentStatus };
+
+/**
+ * A Premium order, re-checked with MyFatoorah by the premium function while it is pending
+ * (every few seconds). `cancelIfPending` marks it cancelled on the first check if it still isn't
+ * paid, for when the person closed the payment page.
+ */
+export function usePaymentOrder(id: string | undefined, cancelIfPending: boolean) {
+  const qc = useQueryClient();
+  const firstCheck = useRef(true);
+  return useQuery({
+    queryKey: keys.paymentOrder(id ?? ''),
+    enabled: !!id,
+    queryFn: async () => {
+      const cancel = cancelIfPending && firstCheck.current;
+      firstCheck.current = false;
+      const { data, error } = await supabase.functions.invoke<{ order: PaymentOrder }>('premium', {
+        body: { action: 'status', orderId: id, cancel },
+      });
+      if (error || !data?.order) throw new Error(t('Could not load this payment.'));
+      if (data.order.status === 'accepted') void qc.invalidateQueries({ queryKey: keys.subscription });
+      return data.order;
+    },
+    refetchInterval: (query) => (query.state.data?.status === 'pending' ? 5000 : false),
+  });
+}
+
 // ---------- Body weight ----------
 
 export type BodyWeight = Pick<Tables<'body_weights'>, 'id' | 'logged_on' | 'weight_kg'>;
@@ -506,6 +536,17 @@ export function useWeightGoal() {
     queryFn: async () => {
       const row = unwrap(await supabase.from('weight_goals').select('goal_kg').maybeSingle()) as { goal_kg: number } | null;
       return row ? Number(row.goal_kg) : null;
+    },
+  });
+}
+
+/** Saves the unit for body weight (the profile's own unit setting). */
+export function useSetBodyWeightUnit() {
+  return useMutation({
+    mutationFn: async (unit: 'kg' | 'lb') => {
+      const uid = await currentUserId();
+      const { error } = await supabase.from('profiles').update({ weight_unit: unit }).eq('id', uid);
+      if (error) throw new Error(error.message);
     },
   });
 }

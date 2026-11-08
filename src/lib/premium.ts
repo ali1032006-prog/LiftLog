@@ -24,20 +24,21 @@ export const FREE_ROUTINE_LIMIT = 4;
 
 export type CheckoutResult =
   | { status: 'redirected' }
-  | { status: 'success' }
-  | { status: 'failed' }
-  | { status: 'cancelled' }
+  | { status: 'returned'; orderId: string; closed: boolean }
   | { status: 'error'; message: string };
 
+const PENDING_ORDER_KEY = 'liftlog.pendingOrder.v1';
+
 /**
- * Pays for a plan through MyFatoorah. The premium-checkout function creates the invoice and
- * premium-callback confirms the payment with MyFatoorah and adds the Premium time.
- * On web the page leaves for the payment page and comes back with ?premium=success|failed.
+ * Pays for a plan through MyFatoorah. The `premium` function creates a pending order and the
+ * invoice, and updates the order once MyFatoorah reports the result.
+ * - Web: the page leaves for MyFatoorah, which sends people back to /payment/<orderId>.
+ * - Phones: an in-app browser opens; afterwards show /payment/<orderId>.
  */
 export async function startCheckout(plan: PremiumPlan): Promise<CheckoutResult> {
-  const returnUrl = Platform.OS === 'web' ? `${window.location.origin}/` : Linking.createURL('premium');
-  const { data, error } = await supabase.functions.invoke<{ url: string }>('premium-checkout', {
-    body: { plan, returnUrl, lang: currentLang() },
+  const returnUrl = Platform.OS === 'web' ? `${window.location.origin}/payment` : Linking.createURL('payment');
+  const { data, error } = await supabase.functions.invoke<{ url: string; orderId: string }>('premium', {
+    body: { action: 'checkout', plan, returnUrl, lang: currentLang() },
   });
   if (error || !data?.url) {
     let code: string | undefined;
@@ -52,23 +53,37 @@ export async function startCheckout(plan: PremiumPlan): Promise<CheckoutResult> 
     };
   }
   if (Platform.OS === 'web') {
+    // Remembered in case the person comes back without finishing (e.g. the browser's back button).
+    try {
+      window.localStorage.setItem(PENDING_ORDER_KEY, JSON.stringify({ id: data.orderId, at: Date.now() }));
+    } catch {
+      // Storage can be unavailable (private mode); the order page still works from the redirect.
+    }
     window.location.assign(data.url);
     return { status: 'redirected' };
   }
   const result = await WebBrowser.openAuthSessionAsync(data.url, returnUrl);
-  if (result.type !== 'success') return { status: 'cancelled' };
-  return { status: new URL(result.url).searchParams.get('premium') === 'success' ? 'success' : 'failed' };
+  return { status: 'returned', orderId: data.orderId, closed: result.type !== 'success' };
 }
 
-/** On web, reads and clears the ?premium=success|failed the payment page sends people back with. */
-export function takePaymentReturn(): 'success' | 'failed' | null {
+/**
+ * Web: the order someone left for MyFatoorah with and came back from without finishing
+ * (not through the payment result page). Returns its id once, then forgets it.
+ */
+export function takeAbandonedOrder(): string | null {
   if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
-  const url = new URL(window.location.href);
-  const value = url.searchParams.get('premium');
-  if (value !== 'success' && value !== 'failed') return null;
-  url.searchParams.delete('premium');
-  window.history.replaceState(null, '', url.toString());
-  return value;
+  try {
+    const raw = window.localStorage.getItem(PENDING_ORDER_KEY);
+    if (!raw) return null;
+    window.localStorage.removeItem(PENDING_ORDER_KEY);
+    const { id, at } = JSON.parse(raw) as { id?: string; at?: number };
+    // Came back through MyFatoorah's redirect: the order page is already showing.
+    if (window.location.pathname.startsWith('/payment')) return null;
+    if (!id || !at || Date.now() - at > 2 * 60 * 60 * 1000) return null;
+    return id;
+  } catch {
+    return null;
+  }
 }
 
 /** Why the paywall was opened; picks its heading. */

@@ -35,6 +35,9 @@ npx eslint src          # lint
 | `(tabs)/index` | Home feed: your workouts + people you follow |
 | `(tabs)/workout` | Start an empty workout, routines list |
 | `(tabs)/account` | Your profile: workouts, followers, following |
+| `(tabs)/more` | Weight and AI coach (Premium), Premium status |
+| `weight`, `coach` | Weight tracking (kg/lb switch) and the AI coach |
+| `payment/[id]` | Result of a Premium payment: accepted, declined, pending or cancelled |
 | `workout/active` | Live workout logger with rest timer |
 | `workout/[id]` | Workout detail; "Save as routine" copies it to your routines |
 | `routine/[id]` | Routine editor (`new` creates one) |
@@ -79,7 +82,9 @@ enabled in Supabase, and hide the rest. To enable one:
 
 - `login-with-username`: signs in with a username without exposing emails to the client.
 - `delete-account`: permanently deletes the caller's account and data.
-- `coach-chat`: the AI coach on the Coach tab. Sends the person's message, their recent chat and a summary of their last 4 weeks of workouts to free OpenRouter models, then stores both sides in `coach_messages`. Limited to 20 messages per person per 24 hours.
+- `premium`: LiftLog Premium checkout and payment results (MyFatoorah). `premium-checkout` and
+  `premium-callback` are retired stubs kept for old links.
+- `coach-chat`: the AI coach (More → AI coach). Sends the person's message, their recent chat and a summary of their last 4 weeks of workouts to free OpenRouter models, then stores both sides in `coach_messages`. Limited to 20 messages per person per 24 hours.
 
 ## LiftLog Premium
 
@@ -91,9 +96,12 @@ first time each person signs in; it can be reopened from Settings → LiftLog Pr
   database, the coach function and the routine limit all trust it.
 - Payments go through **MyFatoorah** as one-time invoices: paying adds 1 month or 1 year
   (from the later of today or the current end date). There is no automatic renewal yet.
-  `premium-checkout` creates the invoice; MyFatoorah sends the customer to `premium-callback`,
-  which re-checks the payment with MyFatoorah (`GetPaymentStatus`), records the invoice once in
-  `subscription_payments`, extends `subscriptions`, and sends them back to the app.
+- Every checkout is an order in `payment_orders` with a status: `pending`, `accepted`,
+  `declined` or `cancelled`. The `premium` Edge Function creates the order and invoice, receives
+  MyFatoorah's redirect, re-checks the real status with MyFatoorah (`GetPaymentStatus`), applies
+  Premium once per invoice (`subscription_payments`), and sends the person to the app's
+  `/payment/<orderId>` page, which shows one of the four results (and keeps re-checking while
+  pending). Leaving the payment page without paying marks the order cancelled.
 - Setup: in Supabase → Edge Functions → Secrets, add `MYFATOORAH_API_KEY` (your MyFatoorah
   token). It uses the sandbox (`https://apitest.myfatoorah.com`) by default; for live payments
   also add `MYFATOORAH_BASE_URL` with your country's live API URL and use your live token.

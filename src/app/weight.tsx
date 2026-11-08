@@ -12,6 +12,7 @@ import {
   useDeleteWeight,
   useLogWeight,
   usePremium,
+  useSetBodyWeightUnit,
   useSetWeightGoal,
   useWeightGoal,
   type BodyWeight,
@@ -119,8 +120,11 @@ function tipsFor(direction: Direction | null): string[] {
 function WeightScreen() {
   const { colors } = useTheme();
   const styles = useStyles();
-  const { profile } = useAuth();
-  const unit = asUnit(profile?.weight_unit);
+  const { profile, refreshProfile } = useAuth();
+  // Shown right away when switched; saved to the profile in the background.
+  const [unitChoice, setUnitChoice] = useState<WeightUnit | null>(null);
+  const unit = unitChoice ?? asUnit(profile?.weight_unit);
+  const saveUnit = useSetBodyWeightUnit();
   const weights = useBodyWeights();
   const goal = useWeightGoal();
   const logWeight = useLogWeight();
@@ -146,6 +150,16 @@ function WeightScreen() {
 
   const direction: Direction | null =
     goalKg == null || !latest ? null : goalKg < latest.weight_kg - 0.5 ? 'lose' : goalKg > latest.weight_kg + 0.5 ? 'gain' : 'maintain';
+
+  const onUnit = (next: WeightUnit) => {
+    if (next === unit) return;
+    setUnitChoice(next);
+    // Typed values were in the old unit.
+    setWeightDraft(null);
+    setGoalDraft(null);
+    setFormError(null);
+    saveUnit.mutate(next, { onSuccess: () => void refreshProfile() });
+  };
 
   const onLog = () => {
     const kg = parseWeightInput(weightText, unit);
@@ -235,7 +249,22 @@ function WeightScreen() {
       {/* Summary */}
       <Card style={{ gap: spacing.md }}>
         <View>
-          <Txt variant="label">{t('Current weight')}</Txt>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Txt variant="label">{t('Current weight')}</Txt>
+            <Row style={styles.segment} accessibilityRole="radiogroup" accessibilityLabel={t('Weight unit')}>
+              {(['kg', 'lb'] as const).map((u) => (
+                <Pressable
+                  key={u}
+                  onPress={() => onUnit(u)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: unit === u }}
+                  style={[styles.segmentItem, unit === u && { backgroundColor: colors.surface }]}
+                >
+                  <Txt variant="small" style={unit === u && { color: colors.text, fontWeight: '700' }}>{t(u)}</Txt>
+                </Pressable>
+              ))}
+            </Row>
+          </Row>
           <Txt style={styles.hero}>{latest ? formatWeight(latest.weight_kg, unit) : '–'}</Txt>
           {latest ? <Txt variant="small">{t('Last logged {date}', { date: shortDate(latest.logged_on) })}</Txt> : null}
         </View>
@@ -320,7 +349,7 @@ function WeightScreen() {
           variant="secondary"
           icon="sparkles"
           title={t('Ask your AI coach')}
-          onPress={() => router.navigate('/coach')}
+          onPress={() => router.push('/coach')}
         />
       </Card>
 

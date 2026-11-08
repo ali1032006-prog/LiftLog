@@ -80,6 +80,9 @@ function RootNavigator() {
         <Stack.Screen name="settings/workout" options={{ title: t('Workout') }} />
         <Stack.Screen name="settings/about" options={{ title: t('About') }} />
         <Stack.Screen name="edit-profile" options={{ title: t('Edit profile') }} />
+        <Stack.Screen name="weight" options={{ title: t('Weight') }} />
+        <Stack.Screen name="coach" options={{ title: t('Coach') }} />
+        <Stack.Screen name="payment/[id]" options={{ title: t('Payment') }} />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />

@@ -5,8 +5,8 @@ import Animated from 'react-native-reanimated';
 import { enterFade, enterPop, PressableScale } from './motion';
 import { Button, IconButton, Row, Txt } from './ui';
 import { radius, spacing } from '@/constants/theme';
-import { useQueryClient } from '@tanstack/react-query';
-import { keys, useMarkPremiumIntroSeen, usePremium } from '@/hooks/queries';
+import { router } from 'expo-router';
+import { useMarkPremiumIntroSeen, usePremium } from '@/hooks/queries';
 import { useAuth } from '@/hooks/useAuth';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { dateLocale, t } from '@/i18n';
@@ -14,7 +14,7 @@ import {
   FREE_ROUTINE_LIMIT,
   PLAN_PRICES,
   startCheckout,
-  takePaymentReturn,
+  takeAbandonedOrder,
   usePaywall,
   YEARLY_PER_MONTH,
   YEARLY_SAVING_PERCENT,
@@ -48,7 +48,6 @@ export function Paywall() {
   const [busy, setBusy] = useState(false);
   const message = usePaywall((s) => s.notice);
   const setNotice = usePaywall((s) => s.setNotice);
-  const queryClient = useQueryClient();
 
   const onClose = close;
 
@@ -58,14 +57,12 @@ export function Paywall() {
     const result = await startCheckout(plan);
     if (result.status === 'redirected') return; // the page is leaving for MyFatoorah
     setBusy(false);
-    if (result.status === 'success') {
-      await queryClient.invalidateQueries({ queryKey: keys.subscription });
-      setNotice(t('Payment received. Welcome to Premium!'));
-    } else if (result.status === 'failed') {
-      setNotice(t('The payment was not completed. You can try again.'));
-    } else if (result.status === 'error') {
+    if (result.status === 'error') {
       setNotice(result.message);
+      return;
     }
+    close();
+    router.push(`/payment/${result.orderId}${result.closed ? '?closed=1' : ''}`);
   };
 
   const features: { icon: IconName; title: string; text: string }[] = [
@@ -176,7 +173,6 @@ export function PremiumIntro() {
   const { isPremium, loading } = usePremium();
   const open = usePaywall((s) => s.open);
   const markSeen = useMarkPremiumIntroSeen();
-  const queryClient = useQueryClient();
   const shown = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -192,18 +188,23 @@ export function PremiumIntro() {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  // Back from the MyFatoorah payment page (web): show the result.
+  // Web: came back from MyFatoorah without finishing (e.g. the back button) -> show that order.
   useEffect(() => {
-    const result = takePaymentReturn();
-    if (!result) return;
-    shown.current = true;
-    if (result === 'success') {
-      void queryClient.invalidateQueries({ queryKey: keys.subscription });
-      open('settings', t('Payment received. Welcome to Premium!'));
-    } else {
-      open('settings', t('The payment was not completed. You can try again.'));
-    }
-  }, [open, queryClient]);
+    const check = () => {
+      const orderId = takeAbandonedOrder();
+      if (!orderId) return;
+      shown.current = true;
+      router.push(`/payment/${orderId}?closed=1`);
+    };
+    check();
+    if (typeof window === 'undefined' || !window.addEventListener) return;
+    // Browsers often restore the app from their back-forward cache without reloading it.
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) check();
+    };
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
 
   return null;
 }

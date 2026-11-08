@@ -40,25 +40,18 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="weight"
-        options={{
-          title: t('Weight'),
-          tabBarIcon: ({ color, size }) => <Ionicons name="scale" size={size} color={String(color)} />,
-        }}
-      />
-      <Tabs.Screen
-        name="coach"
-        options={{
-          title: t('Coach'),
-          tabBarIcon: ({ color, size }) => <Ionicons name="sparkles" size={size} color={String(color)} />,
-        }}
-      />
-      <Tabs.Screen
         name="account"
         options={{
           title: t('Account'),
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={String(color)} />,
           headerRight: () => <IconButton name="settings-outline" onPress={() => router.push('/settings')} style={{ marginRight: 12 }} />,
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: t('More'),
+          tabBarIcon: ({ color, size }) => <Ionicons name="grid" size={size - 2} color={String(color)} />,
         }}
       />
     </Tabs>

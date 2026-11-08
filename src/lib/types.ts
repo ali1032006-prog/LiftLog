@@ -19,6 +19,16 @@ export type Database = {
         Update: { created_at?: string; id?: string; logged_on?: string; user_id?: string; weight_kg?: number }
         Relationships: []
       }
+      payment_orders: {
+        Row: {
+          amount: number; created_at: string; currency: string; id: string; invoice_id: string | null
+          payment_id: string | null; plan: string; premium_until: string | null; provider: string
+          status: string; status_detail: string | null; updated_at: string; user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string; current_period_end: string; plan: string; provider: string | null

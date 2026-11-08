@@ -40,6 +40,42 @@ const premium: Record<string, string> = {
   Active: 'مفعّل',
   'Free plan': 'الخطة المجانية',
 
+  // Payment result pages
+  Payment: 'الدفع',
+  'Payment accepted': 'تم قبول الدفع',
+  'Payment declined': 'تم رفض الدفع',
+  'Payment pending': 'الدفع قيد الانتظار',
+  'Payment cancelled': 'تم إلغاء الدفع',
+  'Thank you! LiftLog Premium is active until {date}.': 'شكرًا لك! LiftLog بريميوم مفعّل حتى {date}.',
+  'Thank you! LiftLog Premium is now active.': 'شكرًا لك! LiftLog بريميوم مفعّل الآن.',
+  'Your bank or card declined the payment, so you were not charged. Check your card details or try another card.':
+    'رفض البنك أو البطاقة الدفع، لذلك لم يتم خصم أي مبلغ. تحقق من بيانات بطاقتك أو جرّب بطاقة أخرى.',
+  'We are waiting for MyFatoorah to confirm your payment. This page updates by itself, so you can stay here.':
+    'ننتظر تأكيد ماي فاتورة لدفعتك. تتحدث هذه الصفحة تلقائيًا، يمكنك البقاء هنا.',
+  'The payment was cancelled and no money was taken. You can try again whenever you like.':
+    'تم إلغاء الدفع ولم يُخصم أي مبلغ. يمكنك المحاولة مرة أخرى متى شئت.',
+  'Reason: {reason}': 'السبب: {reason}',
+  'Checking…': 'جارٍ التحقق…',
+  Plan: 'الخطة',
+  'LiftLog Premium · 1 year': 'LiftLog بريميوم · سنة',
+  'LiftLog Premium · 1 month': 'LiftLog بريميوم · شهر',
+  Amount: 'المبلغ',
+  Order: 'الطلب',
+  Date: 'التاريخ',
+  'Start using Premium': 'ابدأ استخدام بريميوم',
+  'Try again': 'حاول مرة أخرى',
+  'Check again': 'تحقق مرة أخرى',
+  'Back to LiftLog': 'العودة إلى LiftLog',
+  'Could not load this payment.': 'تعذّر تحميل هذه الدفعة.',
+
+  // More tab
+  More: 'المزيد',
+  Premium: 'بريميوم',
+  Tools: 'الأدوات',
+  'See plans': 'عرض الخطط',
+  'Unlock the AI coach, weight tracking and unlimited routines.': 'افتح المدرب الذكي وتتبع الوزن والروتينات غير المحدودة.',
+  'Weight unit': 'وحدة الوزن',
+
   // Routines
   'Routines ({count})': 'الروتينات ({count})',
   'The free plan saves up to {max} routines. Delete one, or go Premium for unlimited routines.':
