@@ -4,11 +4,11 @@ import { AnimatedItem } from '@/components/motion';
 import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { Button, Card, EmptyState, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
-import { useDeleteRoutine, useRoutines } from '@/hooks/queries';
+import { useDeleteRoutine, usePremium, useRoutines } from '@/hooks/queries';
 import { ActionMenu } from '@/components/Popover';
 import { useDialog } from '@/components/Dialog';
 import { routineToPrefill } from '@/lib/prefill';
-import { MAX_ROUTINES } from '@/lib/units';
+import { FREE_ROUTINE_LIMIT, usePaywall } from '@/lib/premium';
 import { useActiveWorkout, type Prefill } from '@/store/activeWorkout';
 import { makeStyles } from '@/hooks/useTheme';
 import { t } from '@/i18n';
@@ -19,7 +19,10 @@ export default function WorkoutTab() {
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
   const { confirm, dialog } = useDialog();
-  const atLimit = (routines.data?.length ?? 0) >= MAX_ROUTINES;
+  const { isPremium } = usePremium();
+  const openPaywall = usePaywall((s) => s.open);
+  const count = routines.data?.length ?? 0;
+  const atLimit = !isPremium && count >= FREE_ROUTINE_LIMIT;
   const deleteRoutine = useDeleteRoutine();
 
   const onDeleteRoutine = async (id: string, title: string) => {
@@ -52,19 +55,22 @@ export default function WorkoutTab() {
 
       <View style={{ gap: spacing.sm }}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <Txt variant="label">{t('Routines ({count}/{max})', { count: routines.data?.length ?? 0, max: MAX_ROUTINES })}</Txt>
+          <Txt variant="label">
+            {isPremium ? t('Routines ({count})', { count }) : t('Routines ({count}/{max})', { count, max: FREE_ROUTINE_LIMIT })}
+          </Txt>
           <Button
             small
             variant="ghost"
             title={t('New routine')}
-            icon="add"
-            disabled={atLimit}
-            onPress={() => router.push('/routine/new')}
+            icon={atLimit ? 'lock-closed' : 'add'}
+            onPress={() => (atLimit ? openPaywall('routines') : router.push('/routine/new'))}
           />
         </Row>
 
         {atLimit ? (
-          <Txt variant="small">{t('You have {max} routines, the maximum. Delete one to save another.', { max: MAX_ROUTINES })}</Txt>
+          <Txt variant="small">
+            {t('The free plan saves up to {max} routines. Delete one, or go Premium for unlimited routines.', { max: FREE_ROUTINE_LIMIT })}
+          </Txt>
         ) : null}
         {routines.isLoading ? <Loading /> : null}
         {routines.error ? <ErrorText>{routines.error.message}</ErrorText> : null}

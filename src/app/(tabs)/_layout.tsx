@@ -40,6 +40,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="weight"
+        options={{
+          title: t('Weight'),
+          tabBarIcon: ({ color, size }) => <Ionicons name="scale" size={size} color={String(color)} />,
+        }}
+      />
+      <Tabs.Screen
         name="coach"
         options={{
           title: t('Coach'),

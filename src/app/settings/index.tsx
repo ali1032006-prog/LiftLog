@@ -9,6 +9,8 @@ import { Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { usePremium } from '@/hooks/queries';
+import { usePaywall } from '@/lib/premium';
 
 export default function SettingsScreen() {
   const { session, profile, signOut } = useAuth();
@@ -26,6 +28,8 @@ export default function SettingsScreen() {
     { value: 'en', label: 'English' },
     { value: 'ar', label: 'العربية' },
   ];
+  const { isPremium } = usePremium();
+  const openPaywall = usePaywall((s) => s.open);
   const queryClient = useQueryClient();
   const { confirm, notify, dialog } = useDialog();
 
@@ -44,6 +48,12 @@ export default function SettingsScreen() {
       {dialog}
       <SettingsGroup title={t('Account')}>
         <SettingsRow icon="person-circle-outline" label={t('Account')} value={session?.user.email ?? ''} onPress={() => router.push('/settings/account')} />
+        <SettingsRow
+          icon="diamond-outline"
+          label={t('LiftLog Premium')}
+          value={isPremium ? t('Active') : t('Free plan')}
+          onPress={() => openPaywall('settings')}
+        />
         <SettingsRow icon="create-outline" label={t('Edit profile')} value={profile ? `@${profile.username}` : ''} onPress={() => router.push('/edit-profile')} />
       </SettingsGroup>
 

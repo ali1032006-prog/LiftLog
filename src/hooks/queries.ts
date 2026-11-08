@@ -14,6 +14,9 @@ export const keys = {
   routine: (id: string) => ['routine', id] as const,
   exercises: ['exercises'] as const,
   coach: ['coach'] as const,
+  subscription: ['subscription'] as const,
+  bodyWeights: ['bodyWeights'] as const,
+  weightGoal: ['weightGoal'] as const,
   search: (q: string) => ['search', q] as const,
   suggested: ['suggested'] as const,
   followers: (id: string) => ['followers', id] as const,
@@ -387,6 +390,8 @@ function coachError(code: string | undefined): string {
   switch (code) {
     case 'limit':
       return t('You have used your {max} coach messages for today. Try again tomorrow.', { max: COACH_DAILY_LIMIT });
+    case 'premium':
+      return t('The AI coach is part of LiftLog Premium.');
     case 'not_configured':
       return t('The coach is not set up yet.');
     case 'too_long':
@@ -432,5 +437,124 @@ export function useClearCoachChat() {
       if (error) throw new Error(error.message);
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: keys.coach }),
+  });
+}
+
+// ---------- Premium ----------
+
+async function currentUserId(): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  const uid = data.session?.user.id;
+  if (!uid) throw new Error(t('Not signed in'));
+  return uid;
+}
+
+export type Subscription = Tables<'subscriptions'>;
+
+function isActive(sub: Subscription | null | undefined): boolean {
+  return !!sub && (sub.status === 'active' || sub.status === 'canceled') && new Date(sub.current_period_end).getTime() > Date.now();
+}
+
+/** Your paid plan, if any. Only the server writes subscriptions. */
+export function useSubscription() {
+  return useQuery({
+    queryKey: keys.subscription,
+    queryFn: async () => {
+      const uid = await currentUserId();
+      return unwrap(await supabase.from('subscriptions').select('*').eq('user_id', uid).maybeSingle()) as Subscription | null;
+    },
+  });
+}
+
+/** Whether you have LiftLog Premium right now. `loading` is true until that is known. */
+export function usePremium() {
+  const sub = useSubscription();
+  return { isPremium: isActive(sub.data), loading: sub.isLoading, subscription: sub.data ?? null };
+}
+
+/** Records that the Premium popup was shown, so it appears once per account. */
+export function useMarkPremiumIntroSeen() {
+  return useMutation({
+    mutationFn: async () => {
+      const uid = await currentUserId();
+      const { error } = await supabase.from('profiles').update({ premium_intro_seen_at: new Date().toISOString() }).eq('id', uid);
+      if (error) throw new Error(error.message);
+    },
+  });
+}
+
+// ---------- Body weight ----------
+
+export type BodyWeight = Pick<Tables<'body_weights'>, 'id' | 'logged_on' | 'weight_kg'>;
+
+/** Your body weight log for the last year, oldest first. */
+export function useBodyWeights() {
+  return useQuery({
+    queryKey: keys.bodyWeights,
+    queryFn: async () => {
+      const rows = unwrap(
+        await supabase.from('body_weights').select('id, logged_on, weight_kg').order('logged_on', { ascending: false }).limit(365),
+      ) as BodyWeight[];
+      return rows.reverse().map((r) => ({ ...r, weight_kg: Number(r.weight_kg) }));
+    },
+  });
+}
+
+export function useWeightGoal() {
+  return useQuery({
+    queryKey: keys.weightGoal,
+    queryFn: async () => {
+      const row = unwrap(await supabase.from('weight_goals').select('goal_kg').maybeSingle()) as { goal_kg: number } | null;
+      return row ? Number(row.goal_kg) : null;
+    },
+  });
+}
+
+/** Today's date in the person's own time zone, as YYYY-MM-DD. */
+export function localDay(d = new Date()): string {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+/** Logs a weight for a day; logging again on the same day replaces it. */
+export function useLogWeight() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ weightKg, day }: { weightKg: number; day?: string }) => {
+      const uid = await currentUserId();
+      const { error } = await supabase
+        .from('body_weights')
+        .upsert({ user_id: uid, logged_on: day ?? localDay(), weight_kg: Math.round(weightKg * 100) / 100 }, { onConflict: 'user_id,logged_on' });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.bodyWeights }),
+  });
+}
+
+export function useDeleteWeight() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('body_weights').delete().eq('id', id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.bodyWeights }),
+  });
+}
+
+export function useSetWeightGoal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (goalKg: number | null) => {
+      const uid = await currentUserId();
+      const { error } = goalKg == null
+        ? await supabase.from('weight_goals').delete().eq('user_id', uid)
+        : await supabase
+            .from('weight_goals')
+            .upsert({ user_id: uid, goal_kg: Math.round(goalKg * 100) / 100, updated_at: new Date().toISOString() });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.weightGoal }),
   });
 }

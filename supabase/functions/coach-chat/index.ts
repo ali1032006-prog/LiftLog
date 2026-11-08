@@ -49,7 +49,14 @@ function summarize(workouts: WorkoutRow[]): string {
   }).join('\n');
 }
 
-function systemPrompt(name: string, workouts: string, lang: string): string {
+/** Recent body weight entries (newest first) and goal, for weight questions. */
+function weightSummary(rows: { logged_on: string; weight_kg: number }[], goalKg: number | null): string {
+  const goal = goalKg != null ? `Goal weight: ${Number(goalKg)} kg.` : 'No goal weight set.';
+  if (rows.length === 0) return `No body weight logged. ${goal}`;
+  return `${rows.map((r) => `${r.logged_on}: ${Number(r.weight_kg)} kg`).join(', ')}. ${goal}`;
+}
+
+function systemPrompt(name: string, workouts: string, weight: string, lang: string): string {
   return [
     `You are LiftLog Coach, a friendly, practical strength-training coach inside the LiftLog workout app. You are talking with ${name}.`,
     'Give specific, actionable advice on training, exercise technique, programming, progression, recovery and general nutrition.',
@@ -61,6 +68,9 @@ function systemPrompt(name: string, workouts: string, lang: string): string {
     '',
     `Their workouts from the last ${WORKOUT_DAYS} days (newest first):`,
     workouts,
+    '',
+    'Their body weight log (newest first):',
+    weight,
   ].join('\n');
 }
 
@@ -90,6 +100,11 @@ Deno.serve(async (req: Request) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  // The coach is a LiftLog Premium feature.
+  const { data: premium, error: premiumError } = await admin.rpc('has_premium', { p_user_id: user.id });
+  if (premiumError) return json({ error: 'Could not check your plan' }, 500);
+  if (!premium) return json({ error: 'The coach is part of LiftLog Premium', code: 'premium' }, 402);
+
   // Rolling 24-hour limit on the person's own messages.
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { count, error: countError } = await admin.from('coach_messages')
@@ -103,7 +118,7 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json({ error: 'The coach is not set up yet', code: 'not_configured' }, 503);
 
   const workoutsSince = new Date(Date.now() - WORKOUT_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const [{ data: profile }, { data: history }, { data: workouts }] = await Promise.all([
+  const [{ data: profile }, { data: history }, { data: workouts }, { data: weights }, { data: goal }] = await Promise.all([
     admin.from('profiles').select('username, display_name').eq('id', user.id).single(),
     admin.from('coach_messages').select('role, content').eq('user_id', user.id)
       .order('created_at', { ascending: false }).limit(HISTORY_MESSAGES),
@@ -111,11 +126,14 @@ Deno.serve(async (req: Request) => {
       .select('title, started_at, duration_seconds, workout_exercises(position, weight_unit, exercise:exercises(name), sets(weight_kg, reps, completed, position))')
       .eq('user_id', user.id).not('finished_at', 'is', null).gte('started_at', workoutsSince)
       .order('started_at', { ascending: false }).limit(15),
+    admin.from('body_weights').select('logged_on, weight_kg').eq('user_id', user.id)
+      .order('logged_on', { ascending: false }).limit(10),
+    admin.from('weight_goals').select('goal_kg').eq('user_id', user.id).maybeSingle(),
   ]);
 
   const name = profile?.display_name || profile?.username || 'the lifter';
   const messages = [
-    { role: 'system', content: systemPrompt(name, summarize((workouts ?? []) as unknown as WorkoutRow[]), lang) },
+    { role: 'system', content: systemPrompt(name, summarize((workouts ?? []) as unknown as WorkoutRow[]), weightSummary(weights ?? [], goal?.goal_kg ?? null), lang) },
     ...[...(history ?? [])].reverse().map((m) => ({ role: m.role, content: m.content })),
     { role: 'user', content: message },
   ];

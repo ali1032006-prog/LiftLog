@@ -81,6 +81,30 @@ enabled in Supabase, and hide the rest. To enable one:
 - `delete-account`: permanently deletes the caller's account and data.
 - `coach-chat`: the AI coach on the Coach tab. Sends the person's message, their recent chat and a summary of their last 4 weeks of workouts to free OpenRouter models, then stores both sides in `coach_messages`. Limited to 20 messages per person per 24 hours.
 
+## LiftLog Premium
+
+Premium ($4.99/month or $49.99/year) unlocks the AI coach, the Weight tab (weight log, goal,
+trend chart and tips) and unlimited routines (the free plan saves 4). A popup lists these the
+first time each person signs in; it can be reopened from Settings → LiftLog Premium.
+
+- Who has Premium lives in the `subscriptions` table. Only the server can write it, so the
+  database, the coach function and the routine limit all trust it.
+- Payments go through **MyFatoorah** as one-time invoices: paying adds 1 month or 1 year
+  (from the later of today or the current end date). There is no automatic renewal yet.
+  `premium-checkout` creates the invoice; MyFatoorah sends the customer to `premium-callback`,
+  which re-checks the payment with MyFatoorah (`GetPaymentStatus`), records the invoice once in
+  `subscription_payments`, extends `subscriptions`, and sends them back to the app.
+- Setup: in Supabase → Edge Functions → Secrets, add `MYFATOORAH_API_KEY` (your MyFatoorah
+  token). It uses the sandbox (`https://apitest.myfatoorah.com`) by default; for live payments
+  also add `MYFATOORAH_BASE_URL` with your country's live API URL and use your live token.
+- To give someone Premium by hand (for testing), run in the SQL editor:
+
+  ```sql
+  insert into public.subscriptions (user_id, plan, current_period_end, provider)
+  select id, 'yearly', now() + interval '1 year', 'manual' from public.profiles where username = 'their_username'
+  on conflict (user_id) do update set status = 'active', current_period_end = excluded.current_period_end;
+  ```
+
 ## AI coach setup
 
 The coach uses only free OpenRouter models (`:free`), so it never charges your OpenRouter account.

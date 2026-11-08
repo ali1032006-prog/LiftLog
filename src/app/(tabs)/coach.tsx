@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from 'react-native';
 import { useDialog } from '@/components/Dialog';
+import { PremiumLocked } from '@/components/Paywall';
 import { PressableScale } from '@/components/motion';
 import { ErrorText, IconButton, Loading, Row, Txt } from '@/components/ui';
 import { maxContentWidth, radius, spacing } from '@/constants/theme';
-import { COACH_DAILY_LIMIT, useClearCoachChat, useCoachMessages, useSendCoachMessage, type CoachMessage } from '@/hooks/queries';
+import { COACH_DAILY_LIMIT, usePremium, useClearCoachChat, useCoachMessages, useSendCoachMessage, type CoachMessage } from '@/hooks/queries';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { t, tn } from '@/i18n';
 import { Stack } from 'expo-router';
@@ -23,7 +24,23 @@ function usedToday(messages: CoachMessage[]): number {
   return messages.filter((m) => m.role === 'user' && new Date(m.created_at).getTime() >= since).length;
 }
 
-export default function CoachScreen() {
+export default function CoachTab() {
+  const { isPremium, loading } = usePremium();
+  if (loading) return <Loading />;
+  if (!isPremium) {
+    return (
+      <PremiumLocked
+        reason="coach"
+        icon="sparkles"
+        title={t('Your AI coach')}
+        text={t('Get workout plans, technique tips and progress reviews from a coach that knows your training history.')}
+      />
+    );
+  }
+  return <CoachScreen />;
+}
+
+function CoachScreen() {
   const { colors } = useTheme();
   const styles = useStyles();
   const { data: messages = [], isLoading } = useCoachMessages();

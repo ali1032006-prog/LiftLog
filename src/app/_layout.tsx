@@ -3,6 +3,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 
+import { Paywall, PremiumIntro } from '@/components/Paywall';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { AppThemeProvider, useTheme } from '@/hooks/useTheme';
 import { t, useLanguage } from '@/i18n';
@@ -53,6 +54,7 @@ function RootNavigator() {
   }
 
   return (
+    <>
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg },
@@ -83,5 +85,12 @@ function RootNavigator() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
+    {session ? (
+      <>
+        <Paywall />
+        <PremiumIntro />
+      </>
+    ) : null}
+    </>
   );
 }

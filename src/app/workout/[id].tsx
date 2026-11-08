@@ -3,7 +3,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Avatar, Button, Card, ErrorText, Loading, Row, Screen, Txt } from '@/components/ui';
 import { spacing } from '@/constants/theme';
-import { useAddWorkoutPhoto, useCopyWorkout, useDeleteWorkout, useRemoveWorkoutPhoto, useRoutines, useWorkout } from '@/hooks/queries';
+import { useAddWorkoutPhoto, useCopyWorkout, useDeleteWorkout, usePremium, useRemoveWorkoutPhoto, useRoutines, useWorkout } from '@/hooks/queries';
 import { PhotoStrip } from '@/components/PhotoStrip';
 import { ExerciseAnimation } from '@/components/ExerciseAnimation';
 import { flipInRTL } from '@/components/motion';
@@ -13,7 +13,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDialog } from '@/components/Dialog';
 import { formatDate, formatDuration } from '@/lib/format';
 import { workoutToPrefill } from '@/lib/prefill';
-import { asUnit, formatVolume, formatWeight, MAX_ROUTINES } from '@/lib/units';
+import { asUnit, formatVolume, formatWeight } from '@/lib/units';
+import { FREE_ROUTINE_LIMIT, usePaywall } from '@/lib/premium';
 import { useActiveWorkout } from '@/store/activeWorkout';
 import { makeStyles, useTheme } from '@/hooks/useTheme';
 import { t } from '@/i18n';
@@ -33,6 +34,9 @@ export default function WorkoutDetailScreen() {
   const active = useActiveWorkout((s) => s.workout);
   const start = useActiveWorkout((s) => s.start);
   const { confirm, notify, dialog } = useDialog();
+  const { isPremium } = usePremium();
+  const openPaywall = usePaywall((s) => s.open);
+  const routinesFull = !isPremium && (routines.data?.length ?? 0) >= FREE_ROUTINE_LIMIT;
 
   if (isLoading) return <Loading />;
   if (error || !w) return <Screen><ErrorText>{error?.message ?? t('Workout not found')}</ErrorText></Screen>;
@@ -131,17 +135,18 @@ export default function WorkoutDetailScreen() {
       <Row style={{ gap: spacing.sm }}>
         <Button
           title={t('Save as routine')}
-          icon="copy-outline"
+          icon={routinesFull ? 'lock-closed' : 'copy-outline'}
           variant="secondary"
-          onPress={onCopy}
+          onPress={routinesFull ? () => openPaywall('routines') : onCopy}
           loading={copy.isPending}
-          disabled={(routines.data?.length ?? 0) >= MAX_ROUTINES}
           style={{ flex: 1 }}
         />
         <Button title={t('Start workout')} icon="play" onPress={onStart} style={{ flex: 1 }} />
       </Row>
-      {(routines.data?.length ?? 0) >= MAX_ROUTINES ? (
-        <Txt variant="small">{t('You already have {max} routines. Delete one from the Workout tab to save this one.', { max: MAX_ROUTINES })}</Txt>
+      {routinesFull ? (
+        <Txt variant="small">
+          {t('The free plan saves up to {max} routines. Delete one, or go Premium for unlimited routines.', { max: FREE_ROUTINE_LIMIT })}
+        </Txt>
       ) : null}
       {copy.error ? <ErrorText>{copy.error.message}</ErrorText> : null}
 

@@ -13,6 +13,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_weights: {
+        Row: { created_at: string; id: string; logged_on: string; user_id: string; weight_kg: number }
+        Insert: { created_at?: string; id?: string; logged_on?: string; user_id: string; weight_kg: number }
+        Update: { created_at?: string; id?: string; logged_on?: string; user_id?: string; weight_kg?: number }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string; current_period_end: string; plan: string; provider: string | null
+          provider_ref: string | null; status: string; updated_at: string; user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      weight_goals: {
+        Row: { goal_kg: number; updated_at: string; user_id: string }
+        Insert: { goal_kg: number; updated_at?: string; user_id: string }
+        Update: { goal_kg?: number; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
       coach_messages: {
         Row: { content: string; created_at: string; id: string; role: string; user_id: string }
         Insert: { content: string; created_at?: string; id?: string; role: string; user_id: string }
@@ -39,9 +60,9 @@ export type Database = {
         ]
       }
       profiles: {
-        Row: { avatar_url: string | null; bio: string | null; created_at: string; display_name: string | null; id: string; username: string; weight_unit: string }
-        Insert: { avatar_url?: string | null; bio?: string | null; created_at?: string; display_name?: string | null; id: string; username: string; weight_unit?: string }
-        Update: { avatar_url?: string | null; bio?: string | null; created_at?: string; display_name?: string | null; id?: string; username?: string; weight_unit?: string }
+        Row: { avatar_url: string | null; bio: string | null; created_at: string; display_name: string | null; id: string; premium_intro_seen_at: string | null; username: string; weight_unit: string }
+        Insert: { avatar_url?: string | null; bio?: string | null; created_at?: string; display_name?: string | null; id: string; premium_intro_seen_at?: string | null; username: string; weight_unit?: string }
+        Update: { avatar_url?: string | null; bio?: string | null; created_at?: string; display_name?: string | null; id?: string; premium_intro_seen_at?: string | null; username?: string; weight_unit?: string }
         Relationships: []
       }
       routine_exercises: {
@@ -138,6 +159,7 @@ export type Database = {
         Returns: Database["public"]["Views"]["workout_cards"]["Row"][]
         SetofOptions: { from: "*"; to: "workout_cards"; isOneToOne: false; isSetofReturn: true }
       }
+      is_premium: { Args: never; Returns: boolean }
       get_followers: { Args: { p_user_id: string }; Returns: ProfileSummaryRow[] }
       get_following: { Args: { p_user_id: string }; Returns: ProfileSummaryRow[] }
       get_profile: {

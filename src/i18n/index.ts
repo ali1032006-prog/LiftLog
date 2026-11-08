@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import common from './ar/common';
 import plurals from './ar/plurals';
+import premium from './ar/premium';
 import settings from './ar/settings';
 import social from './ar/social';
 import workout from './ar/workout';
@@ -12,7 +13,7 @@ import workout from './ar/workout';
 export type Lang = 'en' | 'ar';
 
 /** English text -> Arabic text. English strings are the keys, so untranslated text falls back to English. */
-const AR: Record<string, string> = { ...common, ...social, ...workout, ...settings, ...plurals };
+const AR: Record<string, string> = { ...common, ...social, ...workout, ...settings, ...premium, ...plurals };
 
 type Vars = Record<string, string | number>;
 
